@@ -53,6 +53,10 @@ img.rc{width:100%;max-height:300px;object-fit:contain;border:1px solid var(--bd)
 .lp.dr polygon{fill:var(--ac);stroke:var(--ac)}.lp.inc polygon{stroke:var(--r);stroke-dasharray:6 4}
 .lp.un polygon,.lp.off polygon{fill:#888;fill-opacity:.18;stroke:var(--r);stroke-dasharray:6 4}
 .lp text{text-anchor:middle;dominant-baseline:central;font-weight:700;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:.15em;pointer-events:none}.lp:hover polygon{fill-opacity:.65}
+:root{--b:#2563eb}.bg-b{background:var(--b)}.lp.b polygon{fill:var(--b);stroke:var(--b)}
+input[type=checkbox],input[type=radio]{width:auto;padding:0;margin-right:6px}
+.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);margin:16px 0 0;border-top:1px solid var(--bd);padding-top:12px}
+.imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.imgs img{width:100%;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);cursor:zoom-in;background:var(--bg)}
 </style></head><body>
 <header><div class="brand"><img src="logo.png" alt=""><div><h1>Separador de Lotes</h1><div class="sub" id="who"></div></div></div><div class="grp" id="hr"></div></header>
 <main id="app"><p class="mu">Cargando…</p></main>
@@ -75,21 +79,21 @@ const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 const mail=d=>d.trim().toLowerCase()+'@separador-lotes.app';
 const pos=v=>+v>0;
 const complete=l=>!!(String(l.name||'').trim()&&pos(l.area)&&pos(l.deposit)&&pos(l.priceCash)&&pos(l.priceFin));
-const canEditLots=()=>!!S.me&&(S.me.role==='admin'||(S.me.role==='administrativo'&&S.me.canEdit));
+const canEditLots=()=>hasPerm('edit_lots');
 const curP=()=>S.projects.find(p=>p.id===S.pid)||null;
 const modal=h=>{$('#modal').innerHTML=`<div class="ov" id="ov"><div class="md">${h}</div></div>`;$('#ov').onclick=e=>{if(e.target.id==='ov')closeM()}};
-const closeM=()=>$('#modal').innerHTML='';
+function closeM(){$('#modal').innerHTML='';clearInterval(S.hb);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}}
 async function shrink(f,max=4000,q=.85){const im=await createImageBitmap(f),k=Math.min(1,max/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{w,h,blob:await new Promise(r=>c.toBlob(r,'image/jpeg',q))}}
 /* --- mapeo de filas --- */
 const pUrl=p=>sb.storage.from('planos').getPublicUrl(p).data.publicUrl;
-const mProj=r=>({id:r.id,name:r.name,share:!!r.share_active,plan:r.plan_path?{url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h}:null});
-const mLot=r=>({id:r.id,projectId:r.project_id,name:r.name,number:r.number,area:r.area,deposit:r.deposit,priceCash:r.price_cash,priceFin:r.price_fin,status:r.status,poly:r.poly});
-const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0});
-const lastSep=id=>S.seps.filter(s=>s.lotId===id&&s.status!=='anulada').sort((a,b)=>b.createdAt-a.createdAt)[0];
+const mProj=r=>({id:r.id,name:r.name,share:!!r.share_active,sepDays:r.sep_days,plan:r.plan_path?{url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h}:null});
+const mLot=r=>({id:r.id,projectId:r.project_id,name:r.name,number:r.number,area:r.area,deposit:r.deposit,priceCash:r.price_cash,priceFin:r.price_fin,status:r.status,poly:r.poly,planId:r.plan_id});
+const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0,opNumber:r.op_number,opDate:r.op_date,priceListed:r.price_listed,priceRequested:r.price_requested,priceStatus:r.price_status,priceNote:r.price_note,contractUrl:r.contract_url,soldByName:r.sold_by_name,expiresAt:r.expires_at?+new Date(r.expires_at):0,dniFront:r.dni_front_path,dniBack:r.dni_back_path});
+const lastSep=id=>S.seps.filter(s=>s.lotId===id&&!['anulada','vencida'].includes(s.status)).sort((a,b)=>b.createdAt-a.createdAt)[0];
 const sorted=()=>S.lots.filter(l=>l.name).sort((a,b)=>String(a.name).localeCompare(String(b.name),undefined,{numeric:true,sensitivity:'base'}));
 const cli=x=>`<div class="kv"><div><b>Cliente</b>${esc(x.clientName)}</div><div><b>DNI del cliente</b>${esc(x.clientDni)}</div><div><b>Tipo de financiamiento</b>${esc(x.finType)}</div><div><b>Cuotas</b>${esc(x.cuotas)}</div></div>`;
 /* --- carga y tiempo real --- */
-function live(){const ch=sb.channel('rt');['lots','separations','projects'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{clearTimeout(S.t);S.t=setTimeout(load,400)}));ch.subscribe()}
+function live(){const ch=sb.channel('rt');['lots','separations','projects','plans','lot_locks','lot_sep_info'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{clearTimeout(S.t);S.t=setTimeout(load,400)}));ch.subscribe()}
 /* --- sesión --- */
 function loginView(msg){
   $('#who').textContent='';$('#hr').innerHTML='';
@@ -101,7 +105,7 @@ function loginView(msg){
 async function enter(){
   const{data:{user}}=await sb.auth.getUser();const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
   if(!p||!p.active){await sb.auth.signOut();loginView('Usuario desactivado o sin perfil. Contacta al administrador.');return}
-  S.me={id:p.id,dni:p.dni,name:p.name,role:p.role,canEdit:p.can_edit};await load();live();
+  S.me={id:p.id,dni:p.dni,name:p.name,role:p.role,perms:p.perms||[]};await sb.rpc('expire_separations');await load();live();
 }
 /* --- estructura --- */
 /* --- ficha del lote --- */
@@ -124,7 +128,7 @@ function bindForm(l){
 function vRegs(){
   const R=S.seps.filter(s=>s.projectId===S.pid).sort((a,b)=>b.createdAt-a.createdAt);
   if(!R.length){$('#v').innerHTML='<div class="card mu">Sin registros todavía.</div>';return}
-  $('#v').innerHTML='<div class="card tw"><table><tr><th>Fecha</th><th>Lote</th><th>Cliente</th><th>Asesor</th><th>Estado</th><th></th></tr>'+R.map(s=>{const c=s.status==='confirmada'?['Confirmada','bg-r']:s.status==='anulada'?['Anulada','']:['Pendiente','bg-y y'];
+  $('#v').innerHTML='<div class="card tw"><table><tr><th>Fecha</th><th>Lote</th><th>Cliente</th><th>Asesor</th><th>Estado</th><th></th></tr>'+R.map(s=>{const c=s.status==='confirmada'?['Confirmada','bg-r']:s.status==='anulada'?['Anulada','']:s.status==='vendida'?['Vendida','bg-b']:s.status==='vencida'?['Vencida','']:['Pendiente','bg-y y'];
     return `<tr><td>${dt(s.createdAt)}</td><td>${esc(s.lotName)}</td><td>${esc(s.clientName)}</td><td>${esc(s.sellerName)}</td><td><span class="badge ${c[1]}">${c[0]}</span></td><td><button data-l="${s.lotId}">${S.me.role==='administrativo'&&s.status==='pendiente'?'Revisar':'Ver'}</button></td></tr>`}).join('')+'</table></div>';
   document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLot(b.dataset.l));
 }
@@ -133,11 +137,12 @@ async function vUsers(){
   const{data}=await sb.from('profiles').select('*').order('created_at'),U=(data||[]).filter(u=>u.role!=='admin');
   $('#v').innerHTML=`<div class="card"><h1>Nuevo usuario</h1><div class="row"><div><label>DNI</label><input id="u1" inputmode="numeric" maxlength="12"></div><div><label>Nombre</label><input id="u2"></div><div><label>Celular</label><input id="u3" inputmode="tel"></div>
   <div><label>Rol</label><select id="u4"><option value="vendedor">Vendedor</option><option value="administrativo">Administrativo</option></select></div><div><label>Contraseña (mín. 6)</label><input id="u5"></div></div><div class="err" id="le"></div><button class="p" id="add" style="margin-top:10px">Crear usuario</button></div>
-  <div class="card tw" style="margin-top:12px"><table><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Rol</th><th>Estado</th><th>Edita lotes</th><th></th></tr>`+U.map(u=>`<tr><td>${esc(u.dni)}</td><td>${esc(u.name)}</td><td>${esc(u.phone)}</td><td>${ROL[u.role]}</td><td>${u.active?'Activo':'<span class="err">Inactivo</span>'}</td>
-  <td>${u.role==='administrativo'?`<button data-c="${u.id}">${u.can_edit?'✔ Autorizado · Quitar':'Autorizar'}</button>`:'—'}</td><td><button data-a="${u.id}">${u.active?'Desactivar':'Activar'}</button> <button data-p="${u.id}">Cambiar clave</button> <button data-x="${u.id}">Borrar</button></td></tr>`).join('')+'</table></div>';
+  <div class="card tw" style="margin-top:12px"><table><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Rol</th><th>Estado</th><th>Acceso</th><th></th></tr>`+U.map(u=>`<tr><td>${esc(u.dni)}</td><td>${esc(u.name)}</td><td>${esc(u.phone)}</td><td>${ROL[u.role]}</td><td>${u.active?'Activo':'<span class="err">Inactivo</span>'}</td>
+  <td><button data-ac="${u.id}">${u.access_all?'Todos los planos':'Planos seleccionados'}</button></td><td><button data-a="${u.id}">${u.active?'Desactivar':'Activar'}</button> <button data-p="${u.id}">Cambiar clave</button> <button data-x="${u.id}">Borrar</button></td></tr>`).join('')+'</table></div>';
   const by=id=>U.find(u=>u.id===id),upd=async(id,v)=>{const{error}=await sb.from('profiles').update(v).eq('id',id);if(error)alert(error.message);vUsers()};
   $('#add').onclick=async()=>{const v=[1,2,3,4,5].map(i=>$('#u'+i).value.trim());if(v.some(x=>!x)){$('#le').textContent='Completa todos los campos.';return}
     try{$('#add').disabled=true;await fn({action:'create',dni:v[0],name:v[1],phone:v[2],role:v[3],password:v[4]});vUsers()}catch(e){$('#le').textContent=e.message;$('#add').disabled=false}};
+  document.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>openAccess(b.dataset.ac));
   document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>upd(b.dataset.a,{active:!by(b.dataset.a).active}));
   document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>upd(b.dataset.c,{can_edit:!by(b.dataset.c).can_edit}));
   document.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{const p=prompt('Nueva contraseña para '+by(b.dataset.p).name+' (mín. 6)');if(p)try{await fn({action:'set_password',id:b.dataset.p,password:p});alert('Contraseña actualizada')}catch(e){alert(e.message)}});
@@ -194,8 +199,8 @@ function shape(p,W,H,label){const xs=[],ys=[],pts=[];for(let i=0;i<p.length;i+=2
   const bw=Math.max(...xs)-Math.min(...xs),bh=Math.max(...ys)-Math.min(...ys),fs=Math.min(Math.min(bw,bh)*.5,Math.max(bw,bh)*.9/Math.max(1,String(label).length)),cx=(Math.max(...xs)+Math.min(...xs))/2,cy=(Math.max(...ys)+Math.min(...ys))/2;
   return `<polygon points="${pts.join(' ')}"/><text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" font-size="${fs.toFixed(1)}">${esc(label)}</text>`}
 function vPlano(){
-  const adm=S.me.role==='admin',D=S.draft,plan=D||(curP()||{}).plan;if(!curP()){$('#v').innerHTML='<div class="card">'+(adm?'Aún no hay proyectos. Crea el primero con <b>+ Proyecto</b> y luego carga su plano.':'Aún no hay proyectos.')+'</div>';return}
-  const up=adm?`<label class="btn" style="display:inline-block">${plan?'Cambiar plano':'Cargar plano'}<input type="file" id="pf" accept="image/*" hidden></label>`:'';
+  const adm=S.me.role==='admin',D=S.draft,plan=D||curPlan();if(!curP()){$('#v').innerHTML='<div class="card">'+(adm?'Aún no hay proyectos. Crea el primero con <b>+ Proyecto</b> y luego carga su plano.':'Aún no hay proyectos.')+'</div>';return}
+  const up=adm?`<label class="btn" style="display:inline-block">${plan?'＋ Agregar plano':'Cargar plano'}<input type="file" class="pf" accept="image/*" hidden></label><label class="btn">📷 Cámara<input type="file" class="pf" accept="image/*" capture="environment" hidden></label>`:'';
   if(!plan){$('#v').innerHTML=`<div class="card">${adm?'<h1>Paso 1: carga el plano de tu lotización</h1><p class="mu">Sube la imagen del plano (JPG/PNG). Después le mostrarás un lote y la app buscará todos los demás.</p>'+up:'El administrador aún no ha cargado el plano.'} <span class="sub" id="pe"></span></div>`;bindUp();return}
   const W=plan.w,H=plan.h;let body,top;
   if(D&&D.step==='mark'){
@@ -207,9 +212,9 @@ function vPlano(){
     <span class="sub">Tolerancia</span><input type="range" id="sn" min="10" max="90" value="${D.tol}" style="width:130px;padding:0"><button id="rs">Reiniciar</button><button class="ok" id="sv">Guardar como posibles lotes</button><span class="sub" id="pe"></span></div>
     <div class="sub" style="margin-top:4px">${D.mode==='drop'?'Toca un lote para descartarlo o recuperarlo.':'Toca un lote que no fue detectado.'} Más tolerancia = detecta tonos más distintos.</div></div>`;
     body=D.items.map((i,k)=>`<g class="lp ${i.off?'off':'dr'}" data-i="${k}">${shape(i.p,W,H,k+1)}</g>`).join('')}
-  else{const L=S.lots.filter(l=>l.poly),named=L.filter(l=>l.name),un=L.length-named.length,rec=S.lots.filter(l=>l.name&&!l.poly).length,c={libre:0,sep:0,separado:0};named.forEach(l=>c[l.status]++);
-    top=`<div class="bar" style="margin-bottom:6px"><div class="legend" style="margin:0">${Object.values(ST).map(s=>`<span><span class="dot ${s[2]}"></span>${s[0]}</span>`).join('')}<span><span class="dot dsh"></span>Sin asignar / datos incompletos</span></div><div class="grp" style="margin-left:auto">${up}</div></div><span id="pe" class="sub"></span><div class="chips"><span class="chip">🟢 ${c.libre} libres</span><span class="chip">🟡 ${c.sep} en separación</span><span class="chip">🔴 ${c.separado} separados</span></div>${adm&&(un||rec)?`<div class="note">${un?`<b>${un}</b> posibles lotes sin asignar. `:''}${rec?`<b>${rec}</b> lotes registrados sin ubicar. `:''}Toca un lote punteado del plano para asociarlo.${!rec&&un?' Antes, ve a <b>Lotes</b> y sube la plantilla Excel.':''}</div>`:''}`;
-    body=L.map(l=>`<g class="lp ${l.name?ST[l.status][1]+(complete(l)?'':' inc'):'un'}" data-id="${l.id}">${shape(l.poly,W,H,l.name?lbl(l):'?')}</g>`).join('')}
+  else{const L=S.lots.filter(l=>l.poly&&l.planId===(curPlan()||{}).id),named=L.filter(l=>l.name),un=L.length-named.length,rec=S.lots.filter(l=>l.name&&!l.poly).length,c={libre:0,sep:0,separado:0,vendido:0};named.forEach(l=>c[l.status]++);
+    top=`${planNav()}<div class="bar" style="margin-bottom:6px"><div class="legend" style="margin:0">${Object.values(ST).map(s=>`<span><span class="dot ${s[2]}"></span>${s[0]}</span>`).join('')}<span><span class="dot dsh"></span>Sin asignar / datos incompletos</span></div><div class="grp" style="margin-left:auto">${up}</div></div><span id="pe" class="sub"></span><div class="chips"><span class="chip">🟢 ${c.libre} libres</span><span class="chip">🟡 ${c.sep} en separación</span><span class="chip">🔴 ${c.separado} separados</span><span class="chip">🔵 ${c.vendido} vendidos</span></div>${adm&&(un||rec)?`<div class="note">${un?`<b>${un}</b> posibles lotes sin asignar. `:''}${rec?`<b>${rec}</b> lotes registrados sin ubicar. `:''}Toca un lote punteado del plano para asociarlo.${!rec&&un?' Antes, ve a <b>Lotes</b> y sube la plantilla Excel.':''}</div>`:''}`;
+    body=L.map(l=>`<g class="lp ${l.name?ST[l.status][1]+(complete(l)?'':' inc'):'un'}" data-id="${l.id}">${shape(l.poly,W,H,l.name?lockMark(l)+lbl(l):'?')}</g>`).join('')}
   $('#v').innerHTML=`<div class="card">${top}<div id="vp" class="vp"><div id="st" class="st"><img src="${plan.url}" width="${W}" height="${H}" draggable="false"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${body}</svg></div><div class="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf">⟲</button></div></div></div>`;
   bindUp();
   const run=async()=>{$('#pe').textContent='Buscando lotes…';await new Promise(r=>setTimeout(r,40));D.items=detectColor(D.d,D.samples,D.tol);D.step='review';render()};
@@ -248,60 +253,10 @@ function mapInit(plan,onTap){
 
 /* ===== v8: nombre único, enlaces por proyecto, plantilla Excel, asociación ===== */
 const nat=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'});
-async function load(){
-  let pq=sb.from('projects').select('*').order('created_at'),lq=sb.from('lots').select('*');
-  if(S.ext){pq=pq.eq('id',S.extPid);lq=lq.eq('project_id',S.extPid)}
-  const q=[pq,lq];if(!S.ext)q.push(sb.from('separations').select('*'));
-  const[p,l,sp]=await Promise.all(q);
-  S.projects=(p.data||[]).map(mProj);S.allLots=(l.data||[]).map(mLot);S.seps=sp?(sp.data||[]).map(mSep):[];
-  if(!S.projects.some(x=>x.id===S.pid))S.pid=(S.projects.find(x=>x.id===LS.get('pid'))||S.projects[0]||{}).id||null;
-  S.lots=S.allLots.filter(x=>x.projectId===S.pid);render();
-}
 async function boot(){
   const m=location.hash.match(/^#ver=([0-9a-f-]{36})$/i);
   if(m){S.ext=true;S.extPid=m[1];S.me={role:'externo',name:'Visitante',dni:''};await load();live();return}
   const{data:{session}}=await sb.auth.getSession();if(session)return enter();loginView();
-}
-function render(){
-  if(!S.me)return;const r=S.me.role,adm=r==='admin';$('#who').textContent=S.me.name+' · '+ROL[r];
-  if(S.ext&&!S.projects.length){$('#hr').innerHTML='';$('#nav').innerHTML='';$('#app').innerHTML='<div class="card" style="text-align:center">🔒 Este enlace informativo no está disponible o fue desactivado.</div>';return}
-  $('#hr').innerHTML=r==='externo'?'<button id="lg">Ingresar</button>':'<button id="pw" title="Cambiar mi contraseña">🔑<span class="hide-s"> Mi clave</span></button> <button id="out">Salir</button>';
-  if($('#lg'))$('#lg').onclick=()=>{location.hash='';location.reload()};
-  if($('#pw'))$('#pw').onclick=async()=>{const p=prompt('Nueva contraseña (mínimo 6 caracteres)');if(p&&p.length>=6){const{error}=await sb.auth.updateUser({password:p});alert(error?error.message:'Contraseña actualizada')}else if(p)alert('Mínimo 6 caracteres')};
-  if($('#out'))$('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
-  const tabs=[['plano','🗺️','Plano']];if(r!=='externo')tabs.push(['regs','📋',r==='vendedor'?'Separaciones':'Registros']);
-  if(adm)tabs.push(['lotes','🏷️','Lotes'],['users','👥','Usuarios'],['share','🔗','Enlaces']);else if(canEditLots())tabs.push(['lotes','🏷️','Lotes']);
-  if(!tabs.find(t=>t[0]===S.tab))S.tab='plano';
-  $('#nav').innerHTML=tabs.map(t=>`<button class="${S.tab===t[0]?'on':''}" data-t="${t[0]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
-  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render()});
-  const pb=r==='externo'?`<div class="bar"><h1>${esc(curP().name)}</h1></div>`:`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="pn">＋ Proyecto</button>'+(S.pid?'<button id="pr">Renombrar</button><button id="pd" class="dg">Eliminar</button>':'')+'</div>':''}</div>`;
-  $('#app').innerHTML=pb+'<div id="v"></div>';
-  if($('#ps'))$('#ps').onchange=e=>{S.pid=e.target.value;LS.set('pid',S.pid);S.draft=null;S.view=null;S.tab='plano';S.lots=S.allLots.filter(x=>x.projectId===S.pid);render()};
-  if($('#pn'))$('#pn').onclick=async()=>{const n=(prompt('Nombre del nuevo proyecto')||'').trim();if(!n)return;const{data,error}=await sb.from('projects').insert({name:n}).select().single();if(error)return alert(error.message);S.pid=data.id;LS.set('pid',S.pid);S.draft=null;S.view=null;S.tab='plano';load()};
-  if($('#pr'))$('#pr').onclick=async()=>{const n=(prompt('Nuevo nombre',curP().name)||'').trim();if(n){await sb.from('projects').update({name:n}).eq('id',S.pid);load()}};
-  if($('#pd'))$('#pd').onclick=async()=>{if(confirm(`¿Eliminar «${curP().name}» con sus lotes y registros? No se puede deshacer.`)){const{error}=await sb.from('projects').delete().eq('id',S.pid);if(error)alert(error.message);S.pid=null;S.draft=null;load()}};
-  ({plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,share:vShare})[S.tab]();
-}
-function openLot(id){
-  const l=S.lots.find(x=>x.id===id);if(!l)return;if(!l.name)return openFree(l);
-  const st=ST[l.status],sp=lastSep(id),r=S.me.role;let act='';
-  if(r==='vendedor'&&l.status==='libre')act=!complete(l)?'<div class="note" style="border-color:var(--r)">⚠️ <b>Datos incompletos:</b> este lote aún no está disponible para separación.</div>':`<div class="row"><div><label>Nombre del cliente</label><input id="cn"></div><div><label>DNI del cliente</label><input id="cd" inputmode="numeric" maxlength="12"></div>
-  <div><label>Tipo de financiamiento</label><select id="ft"><option>Al Contado</option><option>En cuotas</option></select></div><div><label>Cuotas</label><input id="cu" value="Sin Cuotas" disabled></div></div>
-  <label>Foto del recibo de separación</label><input type="file" id="fl" accept="image/*" capture="environment"><img id="pv" class="rc" style="display:none;margin-top:8px"><div class="err" id="me"></div>
-  <button class="p" id="reg" style="width:100%;margin-top:12px" disabled>Registrar Separación</button>`;
-  if(sp&&l.status!=='libre'&&r!=='externo')act+=cli(sp)+`<label>Recibo</label><img class="rc" id="rcp"><div class="sub" style="margin-top:6px">Asesor: ${esc(sp.sellerName)} · ${dt(sp.createdAt)}${sp.confirmedName?'<br>Confirmado por '+esc(sp.confirmedName)+' · '+dt(sp.confirmedAt):''}</div>`;
-  if(r==='administrativo'&&l.status==='sep'&&sp)act+='<button class="ok" id="cf" style="width:100%;margin-top:12px">Confirmar</button><div class="err" id="me"></div>';
-  if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
-  if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
-  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
-  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div><div><b>Precio contado</b>${money(l.priceCash)}</div><div><b>Precio financiado</b>${money(l.priceFin)}</div></div>${act}<button style="width:100%;margin-top:10px" id="cl">Cerrar</button>`);
-  $('#cl').onclick=closeM;
-  if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
-  if($('#ua'))$('#ua').onclick=async()=>{const{error}=await sb.rpc('unassign_lot',{p_lot:l.id});if(error)alert(error.message);closeM();load()};
-  if($('#lb1'))$('#lb1').onclick=async()=>{if(confirm('¿Liberar este lote y anular su separación?')){const{error}=await sb.rpc('release_lot',{p_lot:l.id});if(error)alert(error.message);closeM();load()}};
-  if($('#cf'))$('#cf').onclick=async()=>{const{error}=await sb.rpc('confirm_separation',{p_sep:sp.id});if(error){$('#me').textContent=error.message;return}closeM();load()};
-  if($('#rcp'))sb.storage.from('recibos').createSignedUrl(sp.receipt,3600).then(({data})=>{if(data)$('#rcp').src=data.signedUrl});
-  if($('#fl'))bindForm(l);
 }
 function openFree(l){
   const free=S.lots.filter(x=>x.name&&!x.poly).sort((a,b)=>nat(a.name,b.name)),ed=canEditLots();
@@ -320,18 +275,6 @@ function editLot(l){
     if(error){$('#ee').textContent=error.message.includes('duplicate')?'Ya existe un lote con ese nombre.':error.message;return}
     closeM();const i=sorted().findIndex(x=>x.id===l.id);await load();if(nx){const n=sorted()[i+1];if(n)editLot(n)}};
   $('#es').onclick=()=>sv(0);$('#en').onclick=()=>sv(1);
-}
-async function saveDraft(){
-  const D=S.draft,np=S.lots.filter(l=>l.poly).length;
-  if(np&&!confirm(`Se reemplazarán las ${np} marcas actuales del plano. Los datos de lotes ya registrados se conservan, pero tendrás que volver a asociarlos. ¿Continuar?`))return;
-  $('#sv').disabled=true;$('#sv').textContent='Guardando…';
-  try{const path=`${S.pid}-${Date.now()}.jpg`;let x=await sb.storage.from('planos').upload(path,D.blob,{contentType:'image/jpeg'});if(x.error)throw x.error;
-    x=await sb.from('lots').delete().eq('project_id',S.pid).is('name',null);if(x.error)throw x.error;
-    x=await sb.from('lots').update({poly:null}).eq('project_id',S.pid).not('poly','is',null);if(x.error)throw x.error;
-    x=await sb.from('projects').update({plan_path:path,plan_w:D.w,plan_h:D.h}).eq('id',S.pid);if(x.error)throw x.error;
-    x=await sb.from('lots').insert(D.items.filter(i=>!i.off).map(i=>({project_id:S.pid,status:'libre',poly:i.p})));if(x.error)throw x.error;
-    S.draft=null;S.view=null;S.tab='lotes';S.hint=1;await load();
-  }catch(e){alert('Error: '+(e.message||e));$('#sv').disabled=false;$('#sv').textContent='Guardar como posibles lotes'}
 }
 const TPL=['Nombre del Lote','Tamaño (m2)','Monto de Separación (S/.)','Precio Contado (S/.)','Precio Financiado (S/.)'];
 function tplDownload(){
@@ -357,7 +300,7 @@ function vLotes(){
   const L=sorted(),adm=S.me.role==='admin',un=S.lots.filter(l=>l.poly&&!l.name).length;
   $('#v').innerHTML=(S.hint?'<div class="note" style="margin-top:0">✅ Posibles lotes guardados. <b>Siguiente:</b> descarga la plantilla, llénala y súbela. Luego, en <b>Plano</b>, asocia cada marca con su lote.</div>':'')+
   `<div class="card"><div class="bar" style="margin:0 0 8px"><div><h1>Lotes registrados</h1><div class="sub">${L.length} lotes · ${un} posibles lotes sin asignar en el plano</div></div>${adm?'<div class="grp" style="margin-left:auto"><button id="td">⬇ Descargar plantilla</button><label class="btn p">⬆ Subir plantilla<input type="file" id="tu" accept=".xlsx,.xls,.csv" hidden></label></div>':''}</div>`+
-  (L.length?`<div class="tw"><table><tr><th>Lote</th><th>m²</th><th>Separación</th><th>Contado</th><th>Financiado</th><th>Plano</th><th>Estado</th><th></th></tr>`+L.map(l=>`<tr><td><b>${esc(l.name)}</b></td><td>${esc(l.area??'')}</td><td>${money(l.deposit)}</td><td>${money(l.priceCash)}</td><td>${money(l.priceFin)}</td><td>${l.poly?'✔':'<span class="mu">Sin ubicar</span>'}</td><td>${ST[l.status][0]}${complete(l)?'':' <span class="err">· Datos incompletos</span>'}</td>
+  (L.length?`<div class="tw"><table><tr><th>Lote</th><th>m²</th><th>Separación</th><th>Contado</th><th>Financiado</th><th>Plano</th><th>Estado</th><th></th></tr>`+L.map(l=>`<tr><td><b>${esc(l.name)}</b></td><td>${esc(l.area??'')}</td><td>${money(l.deposit)}</td><td>${money(l.priceCash)}</td><td>${money(l.priceFin)}</td><td>${l.poly?esc((S.plans.find(p=>p.id===l.planId)||{}).name||'✔'):'<span class="mu">Sin ubicar</span>'}</td><td>${ST[l.status][0]}${complete(l)?'':' <span class="err">· Datos incompletos</span>'}</td>
   <td><button data-e="${l.id}">Editar</button>${adm?` <button data-d="${l.id}" class="dg">Borrar</button>`:''}</td></tr>`).join('')+'</table></div>':'<p class="mu">Aún no hay lotes registrados.</p>')+'</div>';
   if($('#td'))$('#td').onclick=tplDownload;if($('#tu'))$('#tu').onchange=e=>{if(e.target.files[0])tplUpload(e.target.files[0])};
   document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>editLot(S.lots.find(l=>l.id===b.dataset.e)));
@@ -368,6 +311,176 @@ function vShare(){
   <div class="tw"><table><tr><th>Proyecto</th><th>Estado</th><th>Enlace</th><th></th></tr>${S.projects.map(p=>{const u=location.origin+location.pathname+'#ver='+p.id;return `<tr><td><b>${esc(p.name)}</b></td><td>${p.share?'✅ Activo':'⛔ Inactivo'}</td><td><input readonly value="${u}" onclick="this.select()" style="min-width:260px"></td><td><button data-s="${p.id}" class="${p.share?'':'ok'}">${p.share?'Desactivar':'Activar'}</button> <button data-k="${u}">Copiar</button></td></tr>`}).join('')}</table></div></div>`;
   document.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{const p=S.projects.find(x=>x.id===b.dataset.s),{error}=await sb.from('projects').update({share_active:!p.share}).eq('id',p.id);if(error)alert(error.message);load()});
   document.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(b.dataset.k);b.textContent='¡Copiado!'}catch(e){alert(b.dataset.k)}});
+}
+
+/* ===== v9: planos múltiples, accesos, permisos, bloqueo, vendido, OCR, precios ===== */
+ST.vendido=['Vendido','b','bg-b'];
+const hasPerm=p=>!!S.me&&(S.me.role==='admin'||(S.me.role==='administrativo'&&(S.me.perms||[]).includes(p)));
+const mPlan=r=>({id:r.id,projectId:r.project_id,name:r.name,path:r.plan_path,url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h});
+const curPlans=()=>S.plans.filter(p=>p.projectId===S.pid);
+const curPlan=()=>curPlans().find(p=>p.id===S.planId)||curPlans()[0]||null;
+const lockMark=l=>{const k=S.locks[l.id];return k&&l.status==='libre'&&new Date(k.until)>new Date()?'🔒':''};
+addEventListener('pagehide',()=>{if(S.lk)sb.rpc('unlock_lot',{p_lot:S.lk})});
+async function load(){
+  let pq=sb.from('projects').select('*').order('created_at'),lq=sb.from('lots').select('*'),plq=sb.from('plans').select('*').order('created_at');
+  if(S.ext){pq=pq.eq('id',S.extPid);lq=lq.eq('project_id',S.extPid);plq=plq.eq('project_id',S.extPid)}
+  const q=[pq,lq,plq];
+  if(!S.ext)q.push(sb.from('separations').select('*'),sb.from('lot_locks').select('*'),sb.from('lot_sep_info').select('*'),sb.from('profiles').select('role,active,perms,access_all').eq('id',S.me.id).maybeSingle());
+  const[p,l,pl,sp,lk,si,me]=await Promise.all(q);
+  if(me&&me.data){if(!me.data.active){await sb.auth.signOut();return location.reload()}S.me.perms=me.data.perms||[]}
+  S.projects=(p.data||[]).map(mProj);S.plans=(pl.data||[]).map(mPlan);S.allLots=(l.data||[]).map(mLot);S.seps=sp?(sp.data||[]).map(mSep):[];
+  S.locks={};((lk&&lk.data)||[]).forEach(k=>{if(new Date(k.until)>new Date())S.locks[k.lot_id]=k});
+  S.sepInfo={};((si&&si.data)||[]).forEach(k=>S.sepInfo[k.lot_id]=k);
+  if(!S.projects.some(x=>x.id===S.pid))S.pid=(S.projects.find(x=>x.id===LS.get('pid'))||S.projects[0]||{}).id||null;
+  const cp=curPlans();if(!cp.some(x=>x.id===S.planId))S.planId=(cp.find(x=>x.id===LS.get('plan'))||cp[0]||{}).id||null;
+  S.lots=S.allLots.filter(x=>x.projectId===S.pid);render();
+}
+function planNav(){
+  const P=curPlans(),cp=curPlan(),adm=S.me.role==='admin';if(!P.length)return'';
+  return `<div class="bar" style="margin-bottom:8px">${P.length>1?`<button id="ppv" title="Plano anterior">◀</button><select id="pls">${P.map(p=>`<option value="${p.id}" ${p.id===cp.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><button id="pnx" title="Plano siguiente">▶</button>`:`<b>${esc(cp.name)}</b>`}${adm?'<div class="grp" style="margin-left:auto"><button id="prn">Renombrar plano</button><button id="pdl" class="dg">Eliminar plano</button></div>':''}</div>`;
+}
+function bindUp(){
+  document.querySelectorAll('.pf').forEach(f=>f.onchange=async()=>{const file=f.files[0];if(!file)return;const pe=$('#pe');if(pe)pe.textContent='Cargando plano…';await new Promise(r=>setTimeout(r,30));
+    try{const{w,h,blob}=await shrink(file,4000,.9),im=await createImageBitmap(blob),k=Math.min(1,2400/Math.max(w,h)),dw=Math.round(w*k),dh=Math.round(h*k),c=document.createElement('canvas');c.width=dw;c.height=dh;const x=c.getContext('2d');x.drawImage(im,0,0,dw,dh);
+      S.draft={blob,url:URL.createObjectURL(blob),w,h,d:{px:x.getImageData(0,0,dw,dh).data,w:dw,h:dh},step:'mark',samples:[],pts:[],items:[],tol:40,mode:'drop'};S.view=null;render()}catch(e){if(pe)pe.textContent='Error: '+(e.message||e)}});
+  const P=curPlans(),cp=curPlan();if(!cp)return;const i=P.findIndex(p=>p.id===cp.id),go=id=>{S.planId=id;LS.set('plan',id);S.view=null;render()};
+  if($('#pls'))$('#pls').onchange=e=>go(e.target.value);if($('#ppv'))$('#ppv').onclick=()=>go(P[(i-1+P.length)%P.length].id);if($('#pnx'))$('#pnx').onclick=()=>go(P[(i+1)%P.length].id);
+  if($('#prn'))$('#prn').onclick=async()=>{const n=(prompt('Nuevo nombre del plano',cp.name)||'').trim();if(n){await sb.from('plans').update({name:n}).eq('id',cp.id);load()}};
+  if($('#pdl'))$('#pdl').onclick=async()=>{if(!confirm(`¿Eliminar «${cp.name}»? Sus marcas se borran; los datos de lotes registrados se conservan sin ubicar.`))return;
+    await sb.from('lots').delete().eq('plan_id',cp.id).is('name',null);await sb.from('lots').update({poly:null}).eq('plan_id',cp.id);
+    const{error}=await sb.from('plans').delete().eq('id',cp.id);if(error)return alert(error.message);sb.storage.from('planos').remove([cp.path]);S.planId=null;S.view=null;load()};
+}
+async function saveDraft(){
+  const D=S.draft,name=(prompt('Nombre del plano',`Plano ${curPlans().length+1}`)||'').trim();if(!name)return;
+  $('#sv').disabled=true;$('#sv').textContent='Guardando…';
+  try{const path=`${S.pid}-${Date.now()}.jpg`;let x=await sb.storage.from('planos').upload(path,D.blob,{contentType:'image/jpeg'});if(x.error)throw x.error;
+    x=await sb.from('plans').insert({project_id:S.pid,name,plan_path:path,plan_w:D.w,plan_h:D.h}).select().single();if(x.error)throw x.error;const id=x.data.id;
+    x=await sb.from('lots').insert(D.items.filter(i=>!i.off).map(i=>({project_id:S.pid,plan_id:id,status:'libre',poly:i.p})));if(x.error)throw x.error;
+    S.planId=id;LS.set('plan',id);S.draft=null;S.view=null;S.tab='lotes';S.hint=1;await load();
+  }catch(e){alert('Error: '+(e.message||e));$('#sv').disabled=false;$('#sv').textContent='Guardar como posibles lotes'}
+}
+function render(){
+  if(!S.me)return;const r=S.me.role,adm=r==='admin';$('#who').textContent=S.me.name+' · '+ROL[r];
+  if(S.ext&&!S.projects.length){$('#hr').innerHTML='';$('#nav').innerHTML='';$('#app').innerHTML='<div class="card" style="text-align:center">🔒 Este enlace informativo no está disponible o fue desactivado.</div>';return}
+  $('#hr').innerHTML=r==='externo'?'<button id="lg">Ingresar</button>':'<button id="pw" title="Cambiar mi contraseña">🔑<span class="hide-s"> Mi clave</span></button> <button id="out">Salir</button>';
+  if($('#lg'))$('#lg').onclick=()=>{location.hash='';location.reload()};
+  if($('#pw'))$('#pw').onclick=async()=>{const p=prompt('Nueva contraseña (mínimo 6 caracteres)');if(p&&p.length>=6){const{error}=await sb.auth.updateUser({password:p});alert(error?error.message:'Contraseña actualizada')}else if(p)alert('Mínimo 6 caracteres')};
+  if($('#out'))$('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
+  const tabs=[['plano','🗺️','Plano']];if(r!=='externo')tabs.push(['regs','📋',r==='vendedor'?'Separaciones':'Registros']);
+  if(adm)tabs.push(['lotes','🏷️','Lotes'],['users','👥','Usuarios'],['perms','🛡️','Permisos'],['share','🔗','Enlaces']);else if(canEditLots())tabs.push(['lotes','🏷️','Lotes']);
+  if(!tabs.find(t=>t[0]===S.tab))S.tab='plano';
+  $('#nav').innerHTML=tabs.map(t=>`<button class="${S.tab===t[0]?'on':''}" data-t="${t[0]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render()});
+  const cpj=curP(),pb=r==='externo'?`<div class="bar"><h1>${esc(cpj.name)}</h1></div>`:`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="pn">＋ Proyecto</button>'+(cpj?`<button id="pdy">⏱ ${cpj.sepDays?cpj.sepDays+' días':'Sin límite'}</button><button id="pr">Renombrar</button><button id="pd" class="dg">Eliminar</button>`:'')+'</div>':''}</div>`;
+  $('#app').innerHTML=pb+'<div id="v"></div>';
+  if($('#ps'))$('#ps').onchange=e=>{S.pid=e.target.value;LS.set('pid',S.pid);S.draft=null;S.view=null;S.tab='plano';S.planId=null;load()};
+  if($('#pn'))$('#pn').onclick=async()=>{const n=(prompt('Nombre del nuevo proyecto')||'').trim();if(!n)return;const{data,error}=await sb.from('projects').insert({name:n}).select().single();if(error)return alert(error.message);S.pid=data.id;LS.set('pid',S.pid);S.draft=null;S.view=null;S.tab='plano';S.planId=null;load()};
+  if($('#pdy'))$('#pdy').onclick=async()=>{const v=prompt('Días que un lote puede estar en estado «Separado» antes de liberarse automáticamente.\nDeja vacío para no limitar.',cpj.sepDays||'');if(v===null)return;const n=v.trim()===''?null:parseInt(v);if(n!==null&&!(n>0))return alert('Número inválido');await sb.from('projects').update({sep_days:n}).eq('id',S.pid);load()};
+  if($('#pr'))$('#pr').onclick=async()=>{const n=(prompt('Nuevo nombre',cpj.name)||'').trim();if(n){await sb.from('projects').update({name:n}).eq('id',S.pid);load()}};
+  if($('#pd'))$('#pd').onclick=async()=>{if(confirm(`¿Eliminar «${cpj.name}» con sus planos, lotes y registros? No se puede deshacer.`)){const{error}=await sb.from('projects').delete().eq('id',S.pid);if(error)alert(error.message);S.pid=null;S.draft=null;load()}};
+  ({plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,perms:vPerms,share:vShare})[S.tab]();
+}
+/* --- OCR en el navegador (Tesseract.js, se carga solo al usarlo) --- */
+async function ocr(blob){
+  if(!window.Tesseract)await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+  const{data}=await Tesseract.recognize(blob,'spa');return data.text;
+}
+function parseDni(t){
+  const L=t.split(/\n/).map(s=>s.trim()).filter(Boolean),clean=s=>s.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ ]/g,' ').replace(/\s+/g,' ').trim().toUpperCase();
+  const BAD=/FECHA|SEXO|ESTADO|NACIM|UBIGEO|DOCUMENTO|DNI|REPUBLICA|PERU|IDENTIDAD|CIVIL|ESTATURA|EMISION|CADUCIDAD|DOMICILIO/;
+  const val=i=>{const s=clean(L[i]).replace(/\b(PRIMER|SEGUNDO|APELLIDOS?|PRE|PRENOMBRES?|NOMBRES?)\b/g,'').replace(/\s+/g,' ').trim();if(s.length>=3&&!BAD.test(s))return s;const n=clean(L[i+1]||'');return n.length>=3&&!BAD.test(n)&&!/APELLIDO|NOMBRE/.test(n)?n:''};
+  const ap=[],nm=[];L.forEach((x,i)=>{if(/apellido/i.test(x)){const v=val(i);if(v)ap.push(v)}else if(/nombre/i.test(x)){const v=val(i);if(v)nm.push(v)}});
+  return{dni:(t.match(/\b(\d{8})\b/)||[])[1]||'',last:ap.join(' ').trim(),first:nm[0]||''};
+}
+function parseReceipt(t){
+  const m=t.match(/(?:operaci[oó]n|transacci[oó]n|referencia|constancia)\D{0,25}?([A-Z0-9]{5,})/i);let op=m?m[1]:'';
+  if(!op){const n=t.match(/\b\d{6,}\b/g);op=n?n.sort((a,b)=>b.length-a.length)[0]:''}
+  const MES={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,set:9,sep:9,oct:10,nov:11,dic:12},z=n=>String(n).padStart(2,'0');let date='',d;
+  if(d=t.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/))date=`${d[3]}-${z(d[2])}-${z(d[1])}`;
+  else if(d=t.match(/\b(\d{4})-(\d{2})-(\d{2})\b/))date=d[0];
+  else if((d=t.match(/\b(\d{1,2})\s*(?:de\s+)?([a-zA-Z]{3})[a-z]*\.?,?\s*(?:de\s+)?(\d{4})\b/i))&&MES[d[2].toLowerCase()])date=`${d[3]}-${z(MES[d[2].toLowerCase()])}-${z(d[1])}`;
+  return{op,date};
+}
+const fileField=(id,t)=>`<label>${t}</label><div class="grp"><label class="btn">📷 Cámara<input type="file" accept="image/*" capture="environment" hidden data-f="${id}"></label><label class="btn">📁 Archivo<input type="file" accept="image/*" hidden data-f="${id}"></label></div><img id="pv_${id}" class="rc" style="display:none;margin-top:6px"><div class="sub" id="ocr_${id}"></div>`;
+const sepForm=()=>`<h3 class="sec">1 · Documento del cliente</h3>${fileField('df','Foto DNI (Anverso)')}${fileField('db','Foto DNI (Reverso)')}
+<div class="row"><div><label>Nombres</label><input id="cf1"></div><div><label>Apellidos</label><input id="cl1"></div><div><label>N° de DNI</label><input id="cd" inputmode="numeric" maxlength="12"></div></div>
+<h3 class="sec">2 · Financiamiento</h3><div class="row"><div><label>Tipo de financiamiento</label><select id="ft"><option>Al Contado</option><option>En cuotas</option></select></div><div><label>Cuotas</label><input id="cu" value="Sin Cuotas" disabled></div></div>
+<div class="kv"><div><b id="plb">Precio al contado</b><span id="plv"></span></div><div><b>Cambio de precio</b><label style="margin:0;font-weight:600"><input type="checkbox" id="pc"> Solicitar cambio</label></div></div>
+<div class="row" id="prq" style="display:none"><div><label>Precio solicitado (S/.)</label><input id="pr" type="number" inputmode="decimal" step="any"></div><div><label>Motivo (opcional)</label><input id="pn"></div></div>
+<h3 class="sec">3 · Pago de la separación</h3>${fileField('rc','Foto del recibo de separación')}<div class="row"><div><label>N° de operación</label><input id="on"></div><div><label>Fecha de operación</label><input id="od" type="date"></div></div>
+<div class="err" id="me2"></div><button class="p" id="reg" style="width:100%;margin-top:12px" disabled>Registrar Separación</button>`;
+function bindForm(l){
+  const F={},q=i=>$('#'+i),price=()=>q('ft').value==='En cuotas'?l.priceFin:l.priceCash;
+  const chk=()=>{const c=q('ft').value==='En cuotas',cu=q('cu'),rq=q('pc').checked;cu.disabled=!c;
+    if(!c){cu.type='text';cu.value='Sin Cuotas'}else if(cu.type!=='number'){cu.type='number';cu.value='';cu.min=2;cu.step=1}
+    q('plb').textContent=c?'Precio en cuotas':'Precio al contado';q('plv').textContent=money(price());q('prq').style.display=rq?'':'none';
+    q('reg').disabled=!(q('cf1').value.trim()&&q('cl1').value.trim()&&/^\d{8,12}$/.test(q('cd').value.trim())&&F.df&&F.db&&F.rc&&q('on').value.trim()&&q('od').value&&(!c||(Number.isInteger(+cu.value)&&+cu.value>=2))&&(!rq||(pos(q('pr').value)&&+q('pr').value!==price())))};
+  document.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const id=inp.dataset.f,m=q('ocr_'+id);m.textContent='Procesando imagen…';
+    try{const{blob}=await shrink(f,1800,.9);F[id]=blob;const p=q('pv_'+id);p.src=URL.createObjectURL(blob);p.style.display='block';chk();
+      if(id==='df'||id==='rc'){m.textContent='Leyendo datos de la imagen…';const t=await ocr(blob);
+        if(id==='df'){const d=parseDni(t);if(d.first)q('cf1').value=d.first;if(d.last)q('cl1').value=d.last;if(d.dni)q('cd').value=d.dni;m.textContent=(d.first||d.last||d.dni)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el documento; completa los datos.'}
+        else{const d=parseReceipt(t);if(d.op)q('on').value=d.op;if(d.date)q('od').value=d.date;m.textContent=(d.op||d.date)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el recibo; completa los datos.'}
+      }else m.textContent='';chk()}catch(e){m.textContent='No se pudo leer la imagen automáticamente; completa los datos.';chk()}});
+  ['cf1','cl1','cd','ft','cu','pr','on','od'].forEach(i=>q(i).oninput=chk);q('pc').onchange=chk;
+  q('reg').onclick=async()=>{const b=q('reg'),er=q('me2'),c=q('ft').value==='En cuotas',up=[];b.disabled=true;b.textContent='Guardando…';
+    try{const base=`${S.me.id}/${Date.now()}`,P={df:base+'-dni-anverso.jpg',db:base+'-dni-reverso.jpg',rc:base+'-recibo.jpg'};
+      for(const k of['df','db','rc']){const bk=k==='rc'?'recibos':'documentos',x=await sb.storage.from(bk).upload(P[k],F[k],{contentType:'image/jpeg'});if(x.error)throw x.error;up.push([bk,P[k]])}
+      const x=await sb.rpc('register_separation',{p_lot:l.id,p_first:q('cf1').value.trim(),p_last:q('cl1').value.trim(),p_dni:q('cd').value.trim(),p_fin_type:q('ft').value,p_installments:c?+q('cu').value:null,p_receipt:P.rc,p_dni_front:P.df,p_dni_back:P.db,p_op_number:q('on').value.trim(),p_op_date:q('od').value,p_price_requested:q('pc').checked?+q('pr').value:null,p_price_note:q('pn').value.trim()||null});
+      if(x.error){for(const[bk,pa]of up)await sb.storage.from(bk).remove([pa]);throw x.error}
+      S.lk=null;closeM();load();
+    }catch(e){er.textContent=e.message||'Error al registrar.';b.disabled=false;b.textContent='Registrar Separación'}};
+  chk();
+}
+async function openLot(id){
+  const l=S.lots.find(x=>x.id===id);if(!l)return;if(!l.name)return openFree(l);
+  const r=S.me.role,st=ST[l.status],sp=lastSep(id),si=S.sepInfo[id],lk=S.locks[id];let act='',note='';
+  if(r==='vendedor'&&l.status==='libre'){
+    if(!complete(l))note='<div class="note" style="border-color:var(--r)">⚠️ <b>Datos incompletos:</b> este lote aún no está disponible para separación.</div>';
+    else{const{error}=await sb.rpc('lock_lot',{p_lot:id});if(error)note=`<div class="note" style="border-color:var(--y)">🔒 ${esc(error.message)}</div>`;
+      else{S.lk=id;clearInterval(S.hb);S.hb=setInterval(()=>sb.rpc('lock_lot',{p_lot:id}),60000);act=sepForm()}}
+  }else if(lk&&l.status==='libre'&&r!=='externo')note=`<div class="note" style="border-color:var(--y)">🔒 En proceso de separación por <b>${esc(lk.user_name)}</b></div>`;
+  if(si&&l.status!=='libre'&&r!=='externo')note+=`<div class="sub" style="margin:8px 0">Separado por <b>${esc(si.seller_name)}</b> · ${dt(si.sep_at)}</div>`;
+  if(sp&&r!=='externo'&&l.status!=='libre'){
+    act+=cli(sp)+`<div class="kv"><div><b>N° de operación</b>${esc(sp.opNumber)}</div><div><b>Fecha de operación</b>${esc(sp.opDate)}</div></div>`;
+    if(sp.priceStatus!=='ninguno')act+=`<div class="note">💲 Precio solicitado: <b>${money(sp.priceRequested)}</b> (lista ${money(sp.priceListed)}) · <b>${esc(sp.priceStatus)}</b>${sp.priceNote?' · '+esc(sp.priceNote):''}</div>`;
+    if(l.status==='separado'&&sp.expiresAt)act+=`<div class="sub">Vence el ${dt(sp.expiresAt)}</div>`;
+    if(sp.contractUrl)act+=`<div class="sub">Contrato: <a href="${esc(sp.contractUrl)}" target="_blank" rel="noopener">abrir enlace</a> · vendido por ${esc(sp.soldByName)}</div>`;
+    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="window.open(this.src)">`).join('')}</div>`;
+    if(r==='administrativo'&&l.status==='sep')act+='<button class="ok" id="cf" style="width:100%;margin-top:12px">Confirmar separación</button>';
+    if(hasPerm('approve_price')&&sp.priceStatus==='pendiente')act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
+    if(hasPerm('mark_sold')&&l.status==='separado')act+='<label>Enlace del contrato (obligatorio)</label><input id="ct" placeholder="https://…"><button class="p" id="sold" style="width:100%;margin-top:8px">Marcar como Vendido</button>';
+  }
+  if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
+  if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
+  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
+  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div><div><b>Precio contado</b>${money(l.priceCash)}</div><div><b>Precio en cuotas</b>${money(l.priceFin)}</div></div>${note}${act}<div class="err" id="me"></div><button style="width:100%;margin-top:10px" id="cl">Cerrar</button>`);
+  const rpc=async(fnm,args)=>{const{error}=await sb.rpc(fnm,args);if(error){$('#me').textContent=error.message;return false}closeM();load();return true};
+  $('#cl').onclick=closeM;
+  if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
+  if($('#ua'))$('#ua').onclick=()=>rpc('unassign_lot',{p_lot:l.id});
+  if($('#lb1'))$('#lb1').onclick=()=>{if(confirm('¿Liberar este lote y anular su separación?'))rpc('release_lot',{p_lot:l.id})};
+  if($('#cf'))$('#cf').onclick=()=>rpc('confirm_separation',{p_sep:sp.id});
+  if($('#pa'))$('#pa').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:true});if($('#pj'))$('#pj').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:false});
+  if($('#sold'))$('#sold').onclick=()=>{const u=$('#ct').value.trim();if(!/^https?:\/\/.+/i.test(u)){$('#me').textContent='Pega el enlace (http/https) del archivo del contrato.';return}rpc('mark_sold',{p_lot:l.id,p_url:u})};
+  document.querySelectorAll('.dimg').forEach(async im=>{const{data}=await sb.storage.from(im.dataset.b).createSignedUrl(im.dataset.p,3600);if(data)im.src=data.signedUrl});
+  if($('#cf1'))bindForm(l);
+}
+async function vPerms(){
+  const{data}=await sb.from('profiles').select('*').eq('role','administrativo').order('name'),U=data||[];
+  const P=[['edit_lots','Editar datos de lotes','Nombre, tamaño, precios y monto de separación; asociar lotes al plano.'],['mark_sold','Marcar como Vendido','Pasar un lote de Separado a Vendido (exige el enlace del contrato).'],['approve_price','Aprobar cambios de precio','Responder las solicitudes de cambio de precio de los vendedores.']];
+  $('#v').innerHTML=`<div class="card"><h1>Permisos</h1><p class="sub">El administrador tiene todos los permisos. Aquí eliges cuáles tiene cada usuario administrativo.</p>`+(U.length?`<div class="tw"><table><tr><th>Usuario</th>${P.map(p=>`<th>${p[1]}</th>`).join('')}</tr>${U.map(u=>`<tr><td><b>${esc(u.name)}</b><div class="sub">DNI ${esc(u.dni)}${u.active?'':' · inactivo'}</div></td>${P.map(p=>`<td><input type="checkbox" data-u="${u.id}" data-k="${p[0]}" ${(u.perms||[]).includes(p[0])?'checked':''}></td>`).join('')}</tr>`).join('')}</table></div>`:'<p class="mu">Aún no hay usuarios administrativos.</p>')+`<div class="note">${P.map(p=>`<b>${p[1]}:</b> ${p[2]}`).join('<br>')}</div></div>`;
+  document.querySelectorAll('[data-u]').forEach(c=>c.onchange=async()=>{const u=U.find(x=>x.id===c.dataset.u),s=new Set(u.perms||[]);c.checked?s.add(c.dataset.k):s.delete(c.dataset.k);u.perms=[...s];const{error}=await sb.from('profiles').update({perms:u.perms}).eq('id',u.id);if(error){alert(error.message);vPerms()}});
+}
+async function openAccess(id){
+  const[{data:u},{data:up}]=await Promise.all([sb.from('profiles').select('*').eq('id',id).single(),sb.from('user_plans').select('plan_id').eq('user_id',id)]),has=new Set((up||[]).map(x=>x.plan_id));
+  modal(`<h1>Acceso de ${esc(u.name)}</h1><label style="font-size:14px;color:var(--tx)"><input type="radio" name="am" value="all" ${u.access_all?'checked':''}> Todos los planos</label><label style="font-size:14px;color:var(--tx)"><input type="radio" name="am" value="sel" ${u.access_all?'':'checked'}> Seleccionar planos</label>
+  <div id="al" style="margin-top:8px;${u.access_all?'opacity:.4;pointer-events:none':''}">${S.projects.map(p=>`<div style="margin:8px 0"><b>${esc(p.name)}</b>${S.plans.filter(x=>x.projectId===p.id).map(x=>`<label style="margin:3px 0;font-size:14px;color:var(--tx)"><input type="checkbox" data-pl="${x.id}" ${has.has(x.id)?'checked':''}> ${esc(x.name)}</label>`).join('')||'<div class="sub">Sin planos</div>'}</div>`).join('')}</div>
+  <div class="err" id="ae"></div><button class="p" id="as1" style="width:100%;margin-top:12px">Guardar</button><button id="ac1" style="width:100%;margin-top:8px">Cancelar</button>`);
+  $('#ac1').onclick=closeM;document.querySelectorAll('[name=am]').forEach(x=>x.onchange=()=>{const a=document.querySelector('[name=am]:checked').value==='all';$('#al').style.cssText=a?'margin-top:8px;opacity:.4;pointer-events:none':'margin-top:8px'});
+  $('#as1').onclick=async()=>{const all=document.querySelector('[name=am]:checked').value==='all',sel=[...document.querySelectorAll('[data-pl]:checked')].map(x=>x.dataset.pl);
+    let x=await sb.from('profiles').update({access_all:all}).eq('id',id);if(!x.error)x=await sb.from('user_plans').delete().eq('user_id',id);
+    if(!x.error&&!all&&sel.length)x=await sb.from('user_plans').insert(sel.map(p=>({user_id:id,plan_id:p})));
+    if(x.error){$('#ae').textContent=x.error.message;return}closeM();vUsers()};
 }
 
 boot();

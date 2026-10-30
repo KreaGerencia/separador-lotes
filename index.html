@@ -9,59 +9,74 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lotes">
-<style>:root{--bg:#f3f6fb;--card:#fff;--tx:#14213d;--mu:#667085;--bd:#e3e8f0;--ac:#0b5ed7;--g:#2e9d57;--y:#e9b100;--r:#d63b3b;--sh:0 1px 2px rgba(16,24,40,.06),0 6px 18px rgba(16,24,40,.06);color-scheme:light}
-@media(prefers-color-scheme:dark){:root{--bg:#0d121b;--card:#161d2a;--tx:#e8edf5;--mu:#97a3b6;--bd:#263042;--ac:#5b9bff;--sh:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}}
+<style>:root{--bg:#f3f5fa;--card:#fff;--tx:#0f1b33;--mu:#66738c;--bd:#e3e8f1;--ac:#0b5ed7;--ac2:#0aa2c0;--g:#2e9d57;--y:#e9b100;--r:#d63b3b;--b:#2563eb;--sh:0 1px 2px rgba(15,27,51,.05),0 10px 28px rgba(15,27,51,.07);--side:248px;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0a0f1d;--card:#121a2c;--tx:#e9eef8;--mu:#93a0b8;--bd:#222d44;--sh:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.25);color-scheme:dark}}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding-top:env(safe-area-inset-top)}
-header{order:0;position:sticky;top:0;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--bd);box-shadow:var(--sh)}
-.brand{display:flex;align-items:center;gap:10px;min-width:0}.brand img{width:38px;height:38px;flex:none}.brand>div{min-width:0}
-h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.01em}.sub{color:var(--mu);font-size:12.5px}.mu{color:var(--mu)}
-main{order:2;flex:1;width:100%;max-width:1080px;margin:0 auto;padding:16px}
-.tabs{order:1;display:flex;gap:6px;overflow-x:auto;width:100%;max-width:1080px;margin:12px auto 0;padding:0 16px;scrollbar-width:none}
-.tabs button{display:flex;align-items:center;gap:7px;white-space:nowrap;border-radius:999px;padding:8px 16px}.tabs button.on{background:var(--ac);border-color:var(--ac);color:#fff}
-.ic{font-size:16px;line-height:1}
-@media(max-width:760px){.tabs{order:3;position:fixed;left:0;right:0;bottom:0;margin:0;max-width:none;padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd);z-index:15;justify-content:space-around;gap:2px}
-.tabs button{flex:1;flex-direction:column;gap:2px;font-size:11px;padding:6px 2px;border:0;background:none;border-radius:12px;min-width:0}.tabs button.on{background:rgba(11,94,215,.12);color:var(--ac)}.ic{font-size:19px}
-main{padding:12px;padding-bottom:calc(88px + env(safe-area-inset-bottom))}header{padding:8px 12px}.hide-s{display:none}}
-button,.btn{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:9px 14px;border-radius:10px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:var(--side) minmax(0,1fr);grid-template-rows:auto 1fr;grid-template-areas:"h h" "s m";padding-top:env(safe-area-inset-top)}
+body.nav-off,body.no-side{--side:0px}body.nav-off #side,body.no-side #side,body.no-side #tg{display:none}
+header{grid-area:h;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 16px;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.brand img{width:36px;height:36px;flex:none}.brand>div{min-width:0}
+h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.015em}h2{font-size:15px;margin:0 0 10px;font-weight:700}.sub{color:var(--mu);font-size:12.5px}.mu{color:var(--mu)}
+#side{grid-area:s;position:sticky;top:61px;height:calc(100vh - 61px);overflow:auto;background:var(--card);border-right:1px solid var(--bd);padding:14px 10px}
+.co{display:flex;align-items:center;gap:10px;padding:6px 8px 12px;border-bottom:1px solid var(--bd);margin-bottom:6px}.co img{width:38px;height:38px;object-fit:contain;border-radius:10px}.co b{font-size:14px}
+.nt{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--mu);margin:16px 10px 6px;font-weight:700}
+.ni{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;margin:2px 0;border:0;border-radius:12px;background:none;color:var(--mu);font-weight:600;text-align:left;justify-content:flex-start}
+.ni:hover{background:var(--bg);color:var(--tx)}.ni.on{background:color-mix(in srgb,var(--ac) 13%,transparent);color:var(--ac)}.ic{font-size:17px;width:22px;text-align:center}
+main{grid-area:m;width:100%;max-width:1120px;margin:0 auto;padding:20px}
+#bd{display:none}
+@media(max-width:900px){body{grid-template-columns:1fr;grid-template-areas:"h" "m"}
+#side{display:block!important;position:fixed;left:0;top:0;bottom:0;height:auto;width:min(84vw,300px);z-index:40;transform:translateX(-104%);transition:transform .22s;box-shadow:0 0 40px rgba(0,0,0,.3);padding-top:calc(14px + env(safe-area-inset-top))}
+body.nav-open #side{transform:none}body.nav-open #bd{display:block;position:fixed;inset:0;background:rgba(8,12,22,.55);z-index:35}
+body.no-side #side{display:none!important}main{padding:12px}.hide-s{display:none}header{padding:8px 12px}}
+button,.btn{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:9px 14px;border-radius:11px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
 button:hover,.btn:hover{border-color:var(--ac)}button:disabled{opacity:.45;cursor:not-allowed}
-button.p,.btn.p{background:linear-gradient(135deg,#0b5ed7,#0aa2c0);border-color:transparent;color:#fff}button.ok{background:var(--g);border-color:var(--g);color:#fff}button.dg{color:var(--r)}
-input,select{font:inherit;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);width:100%;min-width:0}
-input:focus,select:focus{outline:2px solid rgba(11,94,215,.35);border-color:var(--ac)}
+button.p,.btn.p{background:linear-gradient(135deg,var(--ac),var(--ac2));border-color:transparent;color:#fff}button.ok{background:var(--g);border-color:var(--g);color:#fff}button.dg{color:var(--r)}
+.ham{padding:8px 11px;font-size:17px}
+input,select{font:inherit;padding:10px 12px;border:1px solid var(--bd);border-radius:11px;background:var(--card);color:var(--tx);width:100%;min-width:0}
+input:focus,select:focus{outline:2px solid color-mix(in srgb,var(--ac) 40%,transparent);border-color:var(--ac)}
 input[type=number]{-moz-appearance:textfield;appearance:textfield}input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin:10px 0 4px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;box-shadow:var(--sh)}.card+.card{margin-top:12px}
+input[type=checkbox],input[type=radio]{width:auto;padding:0;margin-right:6px}input[type=color]{height:42px;padding:3px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin:11px 0 4px}
+.pw{position:relative}.pw input{padding-right:48px}.eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:34px;padding:0;border:0;background:none;touch-action:none;user-select:none;-webkit-user-select:none}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;box-shadow:var(--sh)}.card+.card{margin-top:12px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}.bar select{width:auto;min-width:180px;font-weight:600}.grp{display:flex;gap:6px;flex-wrap:wrap}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{padding:3px 10px;border-radius:999px;background:var(--bg);font-size:12.5px;font-weight:600}
-.note{background:rgba(11,94,215,.08);border:1px solid rgba(11,94,215,.25);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:13.5px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-bottom:6px}.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.dsh{background:transparent;border:2px dashed var(--r)}.bg-g{background:var(--g)}.bg-y{background:var(--y)}.bg-r{background:var(--r)}
-.badge{padding:3px 10px;border-radius:99px;font-size:12px;color:#fff;font-weight:700;white-space:nowrap}.badge.y{color:#222}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.kv div{background:var(--bg);padding:9px 11px;border-radius:10px;font-weight:600}.kv b{display:block;font-size:11.5px;color:var(--mu);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{padding:3px 11px;border-radius:999px;background:var(--bg);font-size:12.5px;font-weight:600}
+.note{background:color-mix(in srgb,var(--ac) 9%,transparent);border:1px solid color-mix(in srgb,var(--ac) 28%,transparent);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:13.5px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}.dot{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-1px}
+.dsh{background:transparent;border:2px dashed var(--r)}.bg-g{background:var(--g)}.bg-y{background:var(--y)}.bg-r{background:var(--r)}.bg-b{background:var(--b)}
+.badge{padding:3px 11px;border-radius:99px;font-size:12px;color:#fff;font-weight:700;white-space:nowrap}.badge.y{color:#222}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.kv div{background:var(--bg);padding:9px 12px;border-radius:12px;font-weight:600}.kv b{display:block;font-size:11.5px;color:var(--mu);font-weight:600}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.err{color:var(--r);font-size:13px;margin-top:6px}
-.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13.5px}th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--mu)}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}
-img.rc{width:100%;max-height:300px;object-fit:contain;border:1px solid var(--bd);border-radius:10px;background:var(--bg)}
-.ov{position:fixed;inset:0;background:rgba(10,15,25,.6);backdrop-filter:blur(2px);display:flex;align-items:flex-end;justify-content:center;z-index:30}
-.md{background:var(--card);width:100%;max-width:480px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
-@media(min-width:600px){.ov{align-items:center}.md{border-radius:20px}}
-.login{max-width:380px;margin:8vh auto;text-align:center}.login img{width:84px}.login label,.login .err{text-align:left}
-.vp{position:relative;overflow:hidden;height:min(68vh,720px);min-height:320px;touch-action:none;background:var(--bg);border:1px solid var(--bd);border-radius:12px;cursor:grab;user-select:none}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13.5px}th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu)}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+img.rc{width:100%;max-height:300px;object-fit:contain;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin:16px 0 0;border-top:1px solid var(--bd);padding-top:12px}
+.imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.imgs img{width:100%;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);cursor:zoom-in;background:var(--bg)}
+.ov{position:fixed;inset:0;background:rgba(8,12,22,.6);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:60}
+.md{position:relative;background:var(--card);width:100%;max-width:500px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.md>h1{padding-right:44px}@media(min-width:600px){.ov{align-items:center}.md{border-radius:22px}}
+.x{position:absolute;right:12px;top:12px;width:36px;height:36px;padding:0;border-radius:50%;font-size:15px;z-index:2}
+#viewer{display:none;position:fixed;inset:0;background:rgba(4,7,14,.92);z-index:80;align-items:center;justify-content:center}#viewer img{max-width:96vw;max-height:90vh;border-radius:10px}#viewer .x{position:fixed;top:calc(14px + env(safe-area-inset-top));right:14px}
+.login{max-width:400px;margin:7vh auto;text-align:center}.login img{width:88px}.login label,.login .err{text-align:left}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.kpi{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px 16px;box-shadow:var(--sh)}.kpi .v{font-size:25px;font-weight:800;letter-spacing:-.02em}
+.sbar{display:flex;height:16px;border-radius:99px;overflow:hidden;background:var(--bg)}.sbar span{display:block}
+.hb{display:grid;grid-template-columns:minmax(80px,170px) 1fr auto;gap:10px;align-items:center;margin:8px 0;font-size:13.5px}.hb i{display:block;height:10px;border-radius:99px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.att{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.bell{position:relative}.cnt{position:absolute;top:-6px;right:-6px;background:var(--r);color:#fff;border-radius:99px;font-size:11px;padding:0 6px;font-weight:700}
+.nl{padding:11px 12px;border:1px solid var(--bd);border-radius:12px;margin:8px 0;cursor:pointer}.nl.un{background:color-mix(in srgb,var(--ac) 8%,transparent);border-color:color-mix(in srgb,var(--ac) 35%,transparent)}
+.vp{position:relative;overflow:hidden;height:min(68vh,720px);min-height:320px;touch-action:none;background:var(--bg);border:1px solid var(--bd);border-radius:14px;cursor:grab;user-select:none}
+.vp.t3{perspective:1100px}.vp.fs{position:fixed;inset:0;z-index:25;height:auto;border-radius:0;border:0}
 .st{position:absolute;left:0;top:0;transform-origin:0 0}.st img{display:block;max-width:none;pointer-events:none}.st svg{position:absolute;left:0;top:0;pointer-events:none}
-.zb{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}.zb button{width:38px;height:38px;padding:0;font-size:18px;box-shadow:var(--sh)}
+.zb{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:3}.zb button{width:40px;height:40px;padding:0;font-size:17px;box-shadow:var(--sh)}
 .lp{pointer-events:auto;cursor:pointer}.lp polygon{stroke-width:2;vector-effect:non-scaling-stroke;fill-opacity:.42}
-.lp.g polygon{fill:var(--g);stroke:var(--g)}.lp.y polygon{fill:var(--y);stroke:var(--y)}.lp.r polygon{fill:var(--r);stroke:var(--r)}
+.lp.g polygon{fill:var(--g);stroke:var(--g)}.lp.y polygon{fill:var(--y);stroke:var(--y)}.lp.r polygon{fill:var(--r);stroke:var(--r)}.lp.b polygon{fill:var(--b);stroke:var(--b)}
 .lp.dr polygon{fill:var(--ac);stroke:var(--ac)}.lp.inc polygon{stroke:var(--r);stroke-dasharray:6 4}
 .lp.un polygon,.lp.off polygon{fill:#888;fill-opacity:.18;stroke:var(--r);stroke-dasharray:6 4}
 .lp text{text-anchor:middle;dominant-baseline:central;font-weight:700;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:.15em;pointer-events:none}.lp:hover polygon{fill-opacity:.65}
-:root{--b:#2563eb}.bg-b{background:var(--b)}.lp.b polygon{fill:var(--b);stroke:var(--b)}
-input[type=checkbox],input[type=radio]{width:auto;padding:0;margin-right:6px}
-.sec{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);margin:16px 0 0;border-top:1px solid var(--bd);padding-top:12px}
-.imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.imgs img{width:100%;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);cursor:zoom-in;background:var(--bg)}
-</style></head><body>
-<header><div class="brand"><img src="logo.png" alt=""><div><h1>Separador de Lotes</h1><div class="sub" id="who"></div></div></div><div class="grp" id="hr"></div></header>
+</style></head><body class="no-side">
+<header><button id="tg" class="ham" aria-label="Menú">☰</button><div class="brand"><img src="logo.png" alt=""><div><h1>Separador de Lotes</h1><div class="sub" id="who"></div></div></div><div class="grp" id="hr"></div></header>
 <main id="app"><p class="mu">Cargando…</p></main>
-<nav class="tabs" id="nav"></nav>
-<div id="modal"></div>
+<aside id="side"></aside><div id="bd"></div>
+<div id="modal"></div><div id="viewer"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
@@ -81,23 +96,22 @@ const pos=v=>+v>0;
 const complete=l=>!!(String(l.name||'').trim()&&pos(l.area)&&pos(l.deposit)&&pos(l.priceCash)&&pos(l.priceFin));
 const canEditLots=()=>hasPerm('edit_lots');
 const curP=()=>S.projects.find(p=>p.id===S.pid)||null;
-const modal=h=>{$('#modal').innerHTML=`<div class="ov" id="ov"><div class="md">${h}</div></div>`;$('#ov').onclick=e=>{if(e.target.id==='ov')closeM()}};
 function closeM(){$('#modal').innerHTML='';clearInterval(S.hb);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}}
 async function shrink(f,max=4000,q=.85){const im=await createImageBitmap(f),k=Math.min(1,max/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{w,h,blob:await new Promise(r=>c.toBlob(r,'image/jpeg',q))}}
 /* --- mapeo de filas --- */
 const pUrl=p=>sb.storage.from('planos').getPublicUrl(p).data.publicUrl;
 const mProj=r=>({id:r.id,name:r.name,share:!!r.share_active,sepDays:r.sep_days,plan:r.plan_path?{url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h}:null});
 const mLot=r=>({id:r.id,projectId:r.project_id,name:r.name,number:r.number,area:r.area,deposit:r.deposit,priceCash:r.price_cash,priceFin:r.price_fin,status:r.status,poly:r.poly,planId:r.plan_id});
-const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0,opNumber:r.op_number,opDate:r.op_date,priceListed:r.price_listed,priceRequested:r.price_requested,priceStatus:r.price_status,priceNote:r.price_note,contractUrl:r.contract_url,soldByName:r.sold_by_name,expiresAt:r.expires_at?+new Date(r.expires_at):0,dniFront:r.dni_front_path,dniBack:r.dni_back_path});
+const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,amount:r.amount,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0,opNumber:r.op_number,opDate:r.op_date,priceListed:r.price_listed,priceRequested:r.price_requested,priceStatus:r.price_status,priceNote:r.price_note,contractUrl:r.contract_url,soldByName:r.sold_by_name,expiresAt:r.expires_at?+new Date(r.expires_at):0,dniFront:r.dni_front_path,dniBack:r.dni_back_path});
 const lastSep=id=>S.seps.filter(s=>s.lotId===id&&!['anulada','vencida'].includes(s.status)).sort((a,b)=>b.createdAt-a.createdAt)[0];
 const sorted=()=>S.lots.filter(l=>l.name).sort((a,b)=>String(a.name).localeCompare(String(b.name),undefined,{numeric:true,sensitivity:'base'}));
 const cli=x=>`<div class="kv"><div><b>Cliente</b>${esc(x.clientName)}</div><div><b>DNI del cliente</b>${esc(x.clientDni)}</div><div><b>Tipo de financiamiento</b>${esc(x.finType)}</div><div><b>Cuotas</b>${esc(x.cuotas)}</div></div>`;
 /* --- carga y tiempo real --- */
-function live(){const ch=sb.channel('rt');['lots','separations','projects','plans','lot_locks','lot_sep_info'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{clearTimeout(S.t);S.t=setTimeout(load,400)}));ch.subscribe()}
+function live(){const ch=sb.channel('rt');['lots','separations','projects','plans','lot_locks','lot_sep_info','notifications'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{clearTimeout(S.t);S.t=setTimeout(load,400)}));ch.subscribe()}
 /* --- sesión --- */
 function loginView(msg){
   $('#who').textContent='';$('#hr').innerHTML='';
-  $('#app').innerHTML=`<div class="card login"><img src="logo.png" alt=""><h1 style="margin:8px 0 2px">Separador de Lotes</h1><p class="sub">Inicia sesión para continuar</p><label>DNI (administrador: admin)</label><input id="ld" autocomplete="username"><label>Contraseña</label><input id="lp" type="password" autocomplete="current-password"><div class="err" id="le">${esc(msg||'')}</div><button class="p" style="width:100%;margin-top:12px" id="lb">Entrar</button></div>`;
+  $('#app').innerHTML=`<div class="card login"><img src="logo.png" alt=""><h1 style="margin:8px 0 2px">Separador de Lotes</h1><p class="sub">Inicia sesión para continuar</p><label>DNI (administrador: admin)</label><input id="ld" autocomplete="username">${pwField('lp','Contraseña')}<div class="err" id="le">${esc(msg||'')}</div><button class="p" style="width:100%;margin-top:12px" id="lb">Entrar</button></div>`;
   const go=async()=>{$('#lb').disabled=true;const{error}=await sb.auth.signInWithPassword({email:mail($('#ld').value),password:$('#lp').value});
     if(error){$('#le').textContent='DNI o contraseña incorrectos.';$('#lb').disabled=false;return}await enter()};
   $('#lb').onclick=go;$('#lp').onkeydown=e=>{if(e.key==='Enter')go()};
@@ -136,7 +150,7 @@ async function fn(body){const{data,error}=await sb.functions.invoke('admin-users
 async function vUsers(){
   const{data}=await sb.from('profiles').select('*').order('created_at'),U=(data||[]).filter(u=>u.role!=='admin');
   $('#v').innerHTML=`<div class="card"><h1>Nuevo usuario</h1><div class="row"><div><label>DNI</label><input id="u1" inputmode="numeric" maxlength="12"></div><div><label>Nombre</label><input id="u2"></div><div><label>Celular</label><input id="u3" inputmode="tel"></div>
-  <div><label>Rol</label><select id="u4"><option value="vendedor">Vendedor</option><option value="administrativo">Administrativo</option></select></div><div><label>Contraseña (mín. 6)</label><input id="u5"></div></div><div class="err" id="le"></div><button class="p" id="add" style="margin-top:10px">Crear usuario</button></div>
+  <div><label>Rol</label><select id="u4"><option value="vendedor">Vendedor</option><option value="administrativo">Administrativo</option></select></div><div>${pwField('u5','Contraseña (mín. 6)')}</div></div><div class="err" id="le"></div><button class="p" id="add" style="margin-top:10px">Crear usuario</button></div>
   <div class="card tw" style="margin-top:12px"><table><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Rol</th><th>Estado</th><th>Acceso</th><th></th></tr>`+U.map(u=>`<tr><td>${esc(u.dni)}</td><td>${esc(u.name)}</td><td>${esc(u.phone)}</td><td>${ROL[u.role]}</td><td>${u.active?'Activo':'<span class="err">Inactivo</span>'}</td>
   <td><button data-ac="${u.id}">${u.access_all?'Todos los planos':'Planos seleccionados'}</button></td><td><button data-a="${u.id}">${u.active?'Desactivar':'Activar'}</button> <button data-p="${u.id}">Cambiar clave</button> <button data-x="${u.id}">Borrar</button></td></tr>`).join('')+'</table></div>';
   const by=id=>U.find(u=>u.id===id),upd=async(id,v)=>{const{error}=await sb.from('profiles').update(v).eq('id',id);if(error)alert(error.message);vUsers()};
@@ -213,9 +227,9 @@ function vPlano(){
     <div class="sub" style="margin-top:4px">${D.mode==='drop'?'Toca un lote para descartarlo o recuperarlo.':'Toca un lote que no fue detectado.'} Más tolerancia = detecta tonos más distintos.</div></div>`;
     body=D.items.map((i,k)=>`<g class="lp ${i.off?'off':'dr'}" data-i="${k}">${shape(i.p,W,H,k+1)}</g>`).join('')}
   else{const L=S.lots.filter(l=>l.poly&&l.planId===(curPlan()||{}).id),named=L.filter(l=>l.name),un=L.length-named.length,rec=S.lots.filter(l=>l.name&&!l.poly).length,c={libre:0,sep:0,separado:0,vendido:0};named.forEach(l=>c[l.status]++);
-    top=`${planNav()}<div class="bar" style="margin-bottom:6px"><div class="legend" style="margin:0">${Object.values(ST).map(s=>`<span><span class="dot ${s[2]}"></span>${s[0]}</span>`).join('')}<span><span class="dot dsh"></span>Sin asignar / datos incompletos</span></div><div class="grp" style="margin-left:auto">${up}</div></div><span id="pe" class="sub"></span><div class="chips"><span class="chip">🟢 ${c.libre} libres</span><span class="chip">🟡 ${c.sep} en separación</span><span class="chip">🔴 ${c.separado} separados</span><span class="chip">🔵 ${c.vendido} vendidos</span></div>${adm&&(un||rec)?`<div class="note">${un?`<b>${un}</b> posibles lotes sin asignar. `:''}${rec?`<b>${rec}</b> lotes registrados sin ubicar. `:''}Toca un lote punteado del plano para asociarlo.${!rec&&un?' Antes, ve a <b>Lotes</b> y sube la plantilla Excel.':''}</div>`:''}`;
+    top=`${planNav()}<div class="bar" style="margin-bottom:6px">${S.me.role==='externo'?'':`<div class="legend" style="margin:0">${Object.values(ST).map(s=>`<span><span class="dot ${s[2]}"></span>${s[0]}</span>`).join('')}<span><span class="dot dsh"></span>Sin asignar / datos incompletos</span></div>`}<div class="grp" style="margin-left:auto">${up}${adm&&un&&rec&&curPlan()?'<button id="aq">⚡ Asociar en orden</button>':''}</div></div><span id="pe" class="sub"></span>${S.me.role==='externo'?'':`<div class="chips"><span class="chip">🟢 ${c.libre} libres</span><span class="chip">🟡 ${c.sep} en separación</span><span class="chip">🔴 ${c.separado} separados</span><span class="chip">🔵 ${c.vendido} vendidos</span></div>`}${adm&&(un||rec)?`<div class="note">${un?`<b>${un}</b> posibles lotes sin asignar. `:''}${rec?`<b>${rec}</b> lotes registrados sin ubicar. `:''}Toca un lote punteado del plano para asociarlo.${!rec&&un?' Antes, ve a <b>Lotes</b> y sube la plantilla Excel.':''}</div>`:''}`;
     body=L.map(l=>`<g class="lp ${l.name?ST[l.status][1]+(complete(l)?'':' inc'):'un'}" data-id="${l.id}">${shape(l.poly,W,H,l.name?lockMark(l)+lbl(l):'?')}</g>`).join('')}
-  $('#v').innerHTML=`<div class="card">${top}<div id="vp" class="vp"><div id="st" class="st"><img src="${plan.url}" width="${W}" height="${H}" draggable="false"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${body}</svg></div><div class="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf">⟲</button></div></div></div>`;
+  $('#v').innerHTML=`<div class="card">${top}<div id="vp" class="vp"><div id="st" class="st"><img src="${plan.url}" width="${W}" height="${H}" draggable="false"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${body}</svg></div><div class="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf">⟲</button><button id="zfs" title="Pantalla completa">⛶</button><button id="z3" title="Vista 3D inclinada">🧊</button></div></div></div>`;
   bindUp();
   const run=async()=>{$('#pe').textContent='Buscando lotes…';await new Promise(r=>setTimeout(r,40));D.items=detectColor(D.d,D.samples,D.tol);D.step='review';render()};
   if(D){$('#cx')&&($('#cx').onclick=()=>{S.draft=null;S.view=null;render()});
@@ -235,7 +249,7 @@ function bindUp(){const f=$('#pf');if(!f)return;f.onchange=async()=>{const file=
     S.draft={blob,url:URL.createObjectURL(blob),w,h,d:{px:x.getImageData(0,0,dw,dh).data,w:dw,h:dh},step:'mark',samples:[],pts:[],items:[],tol:40,mode:'drop'};S.view=null;render()}catch(e){if(pe)pe.textContent='Error: '+(e.message||e)}}}
 function mapInit(plan,onTap){
   const vp=$('#vp'),st=$('#st'),P=new Map(),W=plan.w,H=plan.h;let z=1,tx=0,ty=0,dm=null,moved=0;
-  const apply=()=>{st.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;S.view={z,tx,ty}};
+  const apply=()=>{st.style.transform=`translate(${tx}px,${ty}px)${S.tilt?' rotateX(50deg)':''} scale(${z})`;S.view={z,tx,ty}};
   const fit=()=>{const r=vp.getBoundingClientRect();z=Math.min(r.width/W,r.height/H);tx=(r.width-W*z)/2;ty=(r.height-H*z)/2;apply()};
   const zoomAt=(cx,cy,f)=>{const nz=Math.max(.03,Math.min(10,z*f));f=nz/z;tx=cx-(cx-tx)*f;ty=cy-(cy-ty)*f;z=nz;apply()};
   const rel=e=>{const r=vp.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
@@ -247,13 +261,15 @@ function mapInit(plan,onTap){
     p.x=e.clientX;p.y=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);tx+=dx;ty+=dy;apply()};
   vp.onpointerup=vp.onpointercancel=e=>{if(!P.delete(e.pointerId))return;if(moved<6){const[a,b]=rel(e);onTap(dm,(a-tx)/z/W,(b-ty)/z/H)}dm=null};
   const c=()=>{const r=vp.getBoundingClientRect();return[r.width/2,r.height/2]};
-  $('#zi').onclick=()=>zoomAt(...c(),1.4);$('#zo').onclick=()=>zoomAt(...c(),1/1.4);$('#zf').onclick=fit;
+  $('#zi').onclick=()=>zoomAt(...c(),1.4);$('#zo').onclick=()=>zoomAt(...c(),1/1.4);$('#zf').onclick=fit;document.body.style.overflow='';if(S.tilt)vp.classList.add('t3');
+  $('#zfs').onclick=()=>{const f=vp.classList.toggle('fs');document.body.style.overflow=f?'hidden':'';$('#zfs').textContent=f?'✕':'⛶';setTimeout(fit,60)};
+  $('#z3').onclick=()=>{S.tilt=!S.tilt;vp.classList.toggle('t3',S.tilt);apply()};
 }
 
 
 /* ===== v8: nombre único, enlaces por proyecto, plantilla Excel, asociación ===== */
 const nat=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:'base'});
-async function boot(){
+async function boot(){try{await loadBrand()}catch(e){}
   const m=location.hash.match(/^#ver=([0-9a-f-]{36})$/i);
   if(m){S.ext=true;S.extPid=m[1];S.me={role:'externo',name:'Visitante',dni:''};await load();live();return}
   const{data:{session}}=await sb.auth.getSession();if(session)return enter();loginView();
@@ -262,7 +278,7 @@ function openFree(l){
   const free=S.lots.filter(x=>x.name&&!x.poly).sort((a,b)=>nat(a.name,b.name)),ed=canEditLots();
   modal(`<h1>Posible lote</h1><p class="sub">Marca del plano sin asociar a un lote registrado.</p>`+(ed?(free.length?`<label>Lote registrado (${free.length} disponibles)</label><select id="as"><option value="">Elige un lote…</option>${free.map(x=>`<option value="${x.id}">${esc(x.name)} · ${esc(x.area??'')} m²</option>`).join('')}</select><div class="err" id="ae"></div><button class="p" id="ab" style="width:100%;margin-top:12px" disabled>Asociar a este lote del plano</button>`:'<div class="note">No hay lotes registrados pendientes. En <b>Lotes</b> descarga la plantilla, llénala y súbela.</div>'):'<div class="note">Este lote aún no tiene datos.</div>')+'<button style="width:100%;margin-top:10px" id="cl">Cerrar</button>');
   $('#cl').onclick=closeM;
-  if($('#as')){$('#as').onchange=()=>$('#ab').disabled=!$('#as').value;$('#ab').onclick=async()=>{$('#ab').disabled=true;const{error}=await sb.rpc('assign_lot',{p_poly:l.id,p_record:$('#as').value});if(error){$('#ae').textContent=error.message;$('#ab').disabled=false;return}closeM();load()}}
+  if($('#as')){$('#as').value=free[0].id;$('#ab').disabled=false;$('#as').onchange=()=>$('#ab').disabled=!$('#as').value;$('#ab').onclick=async()=>{$('#ab').disabled=true;const{error}=await sb.rpc('assign_lot',{p_poly:l.id,p_record:$('#as').value});if(error){$('#ae').textContent=error.message;$('#ab').disabled=false;return}closeM();load()}}
 }
 function editLot(l){
   const f=[['name','Nombre del lote','text'],['area','Tamaño (m²)','number'],['deposit','Monto de separación (S/.)','number'],['priceCash','Precio contado (S/.)','number'],['priceFin','Precio financiado (S/.)','number']];
@@ -325,12 +341,13 @@ async function load(){
   let pq=sb.from('projects').select('*').order('created_at'),lq=sb.from('lots').select('*'),plq=sb.from('plans').select('*').order('created_at');
   if(S.ext){pq=pq.eq('id',S.extPid);lq=lq.eq('project_id',S.extPid);plq=plq.eq('project_id',S.extPid)}
   const q=[pq,lq,plq];
-  if(!S.ext)q.push(sb.from('separations').select('*'),sb.from('lot_locks').select('*'),sb.from('lot_sep_info').select('*'),sb.from('profiles').select('role,active,perms,access_all').eq('id',S.me.id).maybeSingle());
-  const[p,l,pl,sp,lk,si,me]=await Promise.all(q);
+  if(!S.ext)q.push(sb.from('separations').select('*'),sb.from('lot_locks').select('*'),sb.from('lot_sep_info').select('*'),sb.from('profiles').select('role,active,perms,access_all').eq('id',S.me.id).maybeSingle(),sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(40));
+  const[p,l,pl,sp,lk,si,me,nt]=await Promise.all(q);
   if(me&&me.data){if(!me.data.active){await sb.auth.signOut();return location.reload()}S.me.perms=me.data.perms||[]}
   S.projects=(p.data||[]).map(mProj);S.plans=(pl.data||[]).map(mPlan);S.allLots=(l.data||[]).map(mLot);S.seps=sp?(sp.data||[]).map(mSep):[];
   S.locks={};((lk&&lk.data)||[]).forEach(k=>{if(new Date(k.until)>new Date())S.locks[k.lot_id]=k});
   S.sepInfo={};((si&&si.data)||[]).forEach(k=>S.sepInfo[k.lot_id]=k);
+  S.notes=(nt&&nt.data)||[];notifyNew();
   if(!S.projects.some(x=>x.id===S.pid))S.pid=(S.projects.find(x=>x.id===LS.get('pid'))||S.projects[0]||{}).id||null;
   const cp=curPlans();if(!cp.some(x=>x.id===S.planId))S.planId=(cp.find(x=>x.id===LS.get('plan'))||cp[0]||{}).id||null;
   S.lots=S.allLots.filter(x=>x.projectId===S.pid);render();
@@ -340,45 +357,16 @@ function planNav(){
   return `<div class="bar" style="margin-bottom:8px">${P.length>1?`<button id="ppv" title="Plano anterior">◀</button><select id="pls">${P.map(p=>`<option value="${p.id}" ${p.id===cp.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><button id="pnx" title="Plano siguiente">▶</button>`:`<b>${esc(cp.name)}</b>`}${adm?'<div class="grp" style="margin-left:auto"><button id="prn">Renombrar plano</button><button id="pdl" class="dg">Eliminar plano</button></div>':''}</div>`;
 }
 function bindUp(){
+  if($('#aq'))$('#aq').onclick=autoAssign;
   document.querySelectorAll('.pf').forEach(f=>f.onchange=async()=>{const file=f.files[0];if(!file)return;const pe=$('#pe');if(pe)pe.textContent='Cargando plano…';await new Promise(r=>setTimeout(r,30));
     try{const{w,h,blob}=await shrink(file,4000,.9),im=await createImageBitmap(blob),k=Math.min(1,2400/Math.max(w,h)),dw=Math.round(w*k),dh=Math.round(h*k),c=document.createElement('canvas');c.width=dw;c.height=dh;const x=c.getContext('2d');x.drawImage(im,0,0,dw,dh);
       S.draft={blob,url:URL.createObjectURL(blob),w,h,d:{px:x.getImageData(0,0,dw,dh).data,w:dw,h:dh},step:'mark',samples:[],pts:[],items:[],tol:40,mode:'drop'};S.view=null;render()}catch(e){if(pe)pe.textContent='Error: '+(e.message||e)}});
   const P=curPlans(),cp=curPlan();if(!cp)return;const i=P.findIndex(p=>p.id===cp.id),go=id=>{S.planId=id;LS.set('plan',id);S.view=null;render()};
   if($('#pls'))$('#pls').onchange=e=>go(e.target.value);if($('#ppv'))$('#ppv').onclick=()=>go(P[(i-1+P.length)%P.length].id);if($('#pnx'))$('#pnx').onclick=()=>go(P[(i+1)%P.length].id);
-  if($('#prn'))$('#prn').onclick=async()=>{const n=(prompt('Nuevo nombre del plano',cp.name)||'').trim();if(n){await sb.from('plans').update({name:n}).eq('id',cp.id);load()}};
+  if($('#prn'))$('#prn').onclick=async()=>{formModal('Renombrar plano',[{id:'fnp',label:'Nombre del plano',value:cp.name}],async v=>{if(!v.fnp)return'Escribe un nombre';const{error}=await sb.from('plans').update({name:v.fnp}).eq('id',cp.id);if(error)return error.message;load()})};
   if($('#pdl'))$('#pdl').onclick=async()=>{if(!confirm(`¿Eliminar «${cp.name}»? Sus marcas se borran; los datos de lotes registrados se conservan sin ubicar.`))return;
     await sb.from('lots').delete().eq('plan_id',cp.id).is('name',null);await sb.from('lots').update({poly:null}).eq('plan_id',cp.id);
     const{error}=await sb.from('plans').delete().eq('id',cp.id);if(error)return alert(error.message);sb.storage.from('planos').remove([cp.path]);S.planId=null;S.view=null;load()};
-}
-async function saveDraft(){
-  const D=S.draft,name=(prompt('Nombre del plano',`Plano ${curPlans().length+1}`)||'').trim();if(!name)return;
-  $('#sv').disabled=true;$('#sv').textContent='Guardando…';
-  try{const path=`${S.pid}-${Date.now()}.jpg`;let x=await sb.storage.from('planos').upload(path,D.blob,{contentType:'image/jpeg'});if(x.error)throw x.error;
-    x=await sb.from('plans').insert({project_id:S.pid,name,plan_path:path,plan_w:D.w,plan_h:D.h}).select().single();if(x.error)throw x.error;const id=x.data.id;
-    x=await sb.from('lots').insert(D.items.filter(i=>!i.off).map(i=>({project_id:S.pid,plan_id:id,status:'libre',poly:i.p})));if(x.error)throw x.error;
-    S.planId=id;LS.set('plan',id);S.draft=null;S.view=null;S.tab='lotes';S.hint=1;await load();
-  }catch(e){alert('Error: '+(e.message||e));$('#sv').disabled=false;$('#sv').textContent='Guardar como posibles lotes'}
-}
-function render(){
-  if(!S.me)return;const r=S.me.role,adm=r==='admin';$('#who').textContent=S.me.name+' · '+ROL[r];
-  if(S.ext&&!S.projects.length){$('#hr').innerHTML='';$('#nav').innerHTML='';$('#app').innerHTML='<div class="card" style="text-align:center">🔒 Este enlace informativo no está disponible o fue desactivado.</div>';return}
-  $('#hr').innerHTML=r==='externo'?'<button id="lg">Ingresar</button>':'<button id="pw" title="Cambiar mi contraseña">🔑<span class="hide-s"> Mi clave</span></button> <button id="out">Salir</button>';
-  if($('#lg'))$('#lg').onclick=()=>{location.hash='';location.reload()};
-  if($('#pw'))$('#pw').onclick=async()=>{const p=prompt('Nueva contraseña (mínimo 6 caracteres)');if(p&&p.length>=6){const{error}=await sb.auth.updateUser({password:p});alert(error?error.message:'Contraseña actualizada')}else if(p)alert('Mínimo 6 caracteres')};
-  if($('#out'))$('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
-  const tabs=[['plano','🗺️','Plano']];if(r!=='externo')tabs.push(['regs','📋',r==='vendedor'?'Separaciones':'Registros']);
-  if(adm)tabs.push(['lotes','🏷️','Lotes'],['users','👥','Usuarios'],['perms','🛡️','Permisos'],['share','🔗','Enlaces']);else if(canEditLots())tabs.push(['lotes','🏷️','Lotes']);
-  if(!tabs.find(t=>t[0]===S.tab))S.tab='plano';
-  $('#nav').innerHTML=tabs.map(t=>`<button class="${S.tab===t[0]?'on':''}" data-t="${t[0]}"><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
-  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render()});
-  const cpj=curP(),pb=r==='externo'?`<div class="bar"><h1>${esc(cpj.name)}</h1></div>`:`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="pn">＋ Proyecto</button>'+(cpj?`<button id="pdy">⏱ ${cpj.sepDays?cpj.sepDays+' días':'Sin límite'}</button><button id="pr">Renombrar</button><button id="pd" class="dg">Eliminar</button>`:'')+'</div>':''}</div>`;
-  $('#app').innerHTML=pb+'<div id="v"></div>';
-  if($('#ps'))$('#ps').onchange=e=>{S.pid=e.target.value;LS.set('pid',S.pid);S.draft=null;S.view=null;S.tab='plano';S.planId=null;load()};
-  if($('#pn'))$('#pn').onclick=async()=>{const n=(prompt('Nombre del nuevo proyecto')||'').trim();if(!n)return;const{data,error}=await sb.from('projects').insert({name:n}).select().single();if(error)return alert(error.message);S.pid=data.id;LS.set('pid',S.pid);S.draft=null;S.view=null;S.tab='plano';S.planId=null;load()};
-  if($('#pdy'))$('#pdy').onclick=async()=>{const v=prompt('Días que un lote puede estar en estado «Separado» antes de liberarse automáticamente.\nDeja vacío para no limitar.',cpj.sepDays||'');if(v===null)return;const n=v.trim()===''?null:parseInt(v);if(n!==null&&!(n>0))return alert('Número inválido');await sb.from('projects').update({sep_days:n}).eq('id',S.pid);load()};
-  if($('#pr'))$('#pr').onclick=async()=>{const n=(prompt('Nuevo nombre',cpj.name)||'').trim();if(n){await sb.from('projects').update({name:n}).eq('id',S.pid);load()}};
-  if($('#pd'))$('#pd').onclick=async()=>{if(confirm(`¿Eliminar «${cpj.name}» con sus planos, lotes y registros? No se puede deshacer.`)){const{error}=await sb.from('projects').delete().eq('id',S.pid);if(error)alert(error.message);S.pid=null;S.draft=null;load()}};
-  ({plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,perms:vPerms,share:vShare})[S.tab]();
 }
 /* --- OCR en el navegador (Tesseract.js, se carga solo al usarlo) --- */
 async function ocr(blob){
@@ -445,15 +433,17 @@ async function openLot(id){
     if(sp.priceStatus!=='ninguno')act+=`<div class="note">💲 Precio solicitado: <b>${money(sp.priceRequested)}</b> (lista ${money(sp.priceListed)}) · <b>${esc(sp.priceStatus)}</b>${sp.priceNote?' · '+esc(sp.priceNote):''}</div>`;
     if(l.status==='separado'&&sp.expiresAt)act+=`<div class="sub">Vence el ${dt(sp.expiresAt)}</div>`;
     if(sp.contractUrl)act+=`<div class="sub">Contrato: <a href="${esc(sp.contractUrl)}" target="_blank" rel="noopener">abrir enlace</a> · vendido por ${esc(sp.soldByName)}</div>`;
-    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="window.open(this.src)">`).join('')}</div>`;
-    if(r==='administrativo'&&l.status==='sep')act+='<button class="ok" id="cf" style="width:100%;margin-top:12px">Confirmar separación</button>';
-    if(hasPerm('approve_price')&&sp.priceStatus==='pendiente')act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
+    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="showImg(this.src)">`).join('')}</div>`;
+    const pp=sp.priceStatus==='pendiente';
+    if(pp&&r!=='vendedor'&&!hasPerm('approve_price'))act+='<div class="note">⏳ Un usuario con permiso debe aprobar o rechazar primero el cambio de precio.</div>';
+    if(hasPerm('approve_price')&&pp)act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
+    if(r==='administrativo'&&l.status==='sep')act+=`<button class="ok" id="cf" ${pp?'disabled':''} style="width:100%;margin-top:12px">Confirmar separación</button>`+(pp?'<div class="sub">Se habilita cuando el precio sea aprobado o rechazado.</div>':'');
     if(hasPerm('mark_sold')&&l.status==='separado')act+='<label>Enlace del contrato (obligatorio)</label><input id="ct" placeholder="https://…"><button class="p" id="sold" style="width:100%;margin-top:8px">Marcar como Vendido</button>';
   }
   if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
   if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
   modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
-  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div><div><b>Precio contado</b>${money(l.priceCash)}</div><div><b>Precio en cuotas</b>${money(l.priceFin)}</div></div>${note}${act}<div class="err" id="me"></div><button style="width:100%;margin-top:10px" id="cl">Cerrar</button>`);
+  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div>${r==='vendedor'&&l.status==='libre'?'':`<div><b>Precio contado</b>${money(l.priceCash)}</div><div><b>Precio en cuotas</b>${money(l.priceFin)}</div>`}</div>${note}${act}<div class="err" id="me"></div><button style="width:100%;margin-top:10px" id="cl">Cerrar</button>`);
   const rpc=async(fnm,args)=>{const{error}=await sb.rpc(fnm,args);if(error){$('#me').textContent=error.message;return false}closeM();load();return true};
   $('#cl').onclick=closeM;
   if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
@@ -481,6 +471,139 @@ async function openAccess(id){
     let x=await sb.from('profiles').update({access_all:all}).eq('id',id);if(!x.error)x=await sb.from('user_plans').delete().eq('user_id',id);
     if(!x.error&&!all&&sel.length)x=await sb.from('user_plans').insert(sel.map(p=>({user_id:id,plan_id:p})));
     if(x.error){$('#ae').textContent=x.error.message;return}closeM();vUsers()};
+}
+
+/* ===== v10: panel, historial, avisos, marca, ventanas seguras, contraseña visible ===== */
+let MO=0,VW=0;
+function modal(h){$('#modal').innerHTML=`<div class="ov"><div class="md"><button class="x" id="mx" aria-label="Cerrar">✕</button>${h}</div></div>`;$('#mx').onclick=()=>closeM();if(!MO){history.pushState({m:1},'');MO=1}}
+function closeM(pop){$('#modal').innerHTML='';clearInterval(S.hb);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}if(MO){MO=0;if(pop!==true)history.back()}}
+function showImg(u){$('#viewer').innerHTML=`<button class="x" id="vx">✕</button><img src="${u}" alt="">`;$('#viewer').style.display='flex';$('#vx').onclick=()=>closeV();if(!VW){history.pushState({v:1},'');VW=1}}
+function closeV(pop){$('#viewer').style.display='none';$('#viewer').innerHTML='';if(VW){VW=0;if(pop!==true)history.back()}}
+addEventListener('popstate',()=>{if(VW)closeV(true);else if(MO)closeM(true)});
+function pwField(id,l){return `<label>${l}</label><div class="pw"><input id="${id}" type="password" data-pw autocomplete="off"><button type="button" class="eye" data-eye="${id}" aria-label="Mantén presionado para ver" oncontextmenu="return false">👁</button></div>`}
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-eye]');if(b){e.preventDefault();const i=$('#'+b.dataset.eye);if(i)i.type='text'}});
+['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>document.querySelectorAll('[data-pw]').forEach(i=>i.type='password'),true));
+function formModal(t,fs,cb,ok='Aceptar'){
+  modal(`<h1>${t}</h1>${fs.map(f=>f.pw?pwField(f.id,f.label):`<label>${f.label}</label><input id="${f.id}" type="${f.type||'text'}" value="${esc(f.value??'')}" ${f.type==='number'?'inputmode="numeric"':''}>`).join('')}<div class="err" id="fe"></div><button class="p" id="fok" style="width:100%;margin-top:14px">${ok}</button>`);
+  const go=async()=>{const v={};fs.forEach(f=>v[f.id]=$('#'+f.id).value.trim());$('#fok').disabled=true;$('#fok').textContent='Guardando…';let e;try{e=await cb(v)}catch(x){e=x.message}
+    if(e){$('#fe').textContent=e;$('#fok').disabled=false;$('#fok').textContent=ok}else closeM()};
+  $('#fok').onclick=go;fs.forEach(f=>$('#'+f.id).onkeydown=e=>{if(e.key==='Enter')go()});
+}
+/* --- marca de la empresa --- */
+async function loadBrand(){const{data}=await sb.from('app_settings').select('*').eq('id',1).maybeSingle();
+  S.brand=data?{name:data.company_name,logo:data.logo_path?sb.storage.from('marca').getPublicUrl(data.logo_path).data.publicUrl:'',color1:data.color1,color2:data.color2}:{};applyBrand()}
+function applyBrand(c1,c2){const b=S.brand||{},r=document.documentElement.style;c1=c1||b.color1||'#0b5ed7';c2=c2||b.color2||c1;r.setProperty('--ac',c1);r.setProperty('--ac2',c2);const m=document.querySelector('meta[name=theme-color]');if(m)m.content=c1}
+function vBrand(){
+  const B=S.brand||{};let file=null;
+  $('#v').innerHTML=`<div class="card" style="max-width:640px"><h1>Marca de la empresa</h1><p class="sub">El logo y los colores se aplican solo al entorno de la app. El logo principal de «Separador de Lotes» se mantiene en el icono de instalación y en el inicio de sesión.</p>
+  <label>Nombre de la empresa</label><input id="bn" value="${esc(B.name||'')}"><label>Logo de la empresa</label>
+  <div class="grp"><label class="btn" style="margin:0">📷 Cámara<input type="file" accept="image/*" capture="environment" hidden class="bf"></label><label class="btn" style="margin:0">📁 Archivo<input type="file" accept="image/*" hidden class="bf"></label></div>
+  <img id="bpv" alt="" src="${B.logo||''}" style="max-height:80px;margin-top:8px;display:${B.logo?'block':'none'}">
+  <div class="row"><div><label>Color principal</label><input type="color" id="c1" value="${B.color1||'#0b5ed7'}"></div><div><label>Color secundario</label><input type="color" id="c2" value="${B.color2||'#0aa2c0'}"></div></div>
+  <div class="err" id="be"></div><button class="p" id="bs" style="margin-top:14px">Guardar marca</button></div>`;
+  document.querySelectorAll('.bf').forEach(i=>i.onchange=()=>{file=i.files[0];if(file){$('#bpv').src=URL.createObjectURL(file);$('#bpv').style.display='block'}});
+  ['c1','c2'].forEach(i=>$('#'+i).oninput=()=>applyBrand($('#c1').value,$('#c2').value));
+  $('#bs').onclick=async()=>{$('#bs').disabled=true;try{let path=null;
+    if(file){const im=await createImageBitmap(file),k=Math.min(1,512/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      const blob=await new Promise(r=>c.toBlob(r,'image/png'));path=`logo-${Date.now()}.png`;const x=await sb.storage.from('marca').upload(path,blob,{contentType:'image/png'});if(x.error)throw x.error}
+    const u={company_name:$('#bn').value.trim()||null,color1:$('#c1').value,color2:$('#c2').value};if(path)u.logo_path=path;
+    const{error}=await sb.from('app_settings').update(u).eq('id',1);if(error)throw error;await loadBrand();render()}catch(e){$('#be').textContent=e.message||e;$('#bs').disabled=false}};
+}
+/* --- avisos --- */
+function notifyNew(){const seen=S.nseen||(S.nseen=new Set((S.notes||[]).map(n=>n.id)));
+  (S.notes||[]).forEach(n=>{if(!seen.has(n.id)){seen.add(n.id);if(!n.read&&window.Notification&&Notification.permission==='granted')navigator.serviceWorker.ready.then(r=>r.showNotification(n.title,{body:n.body,icon:'icon-192.png'}))}})}
+function openBell(){
+  const N=S.notes||[];
+  modal(`<h1>Avisos</h1><div class="grp" style="margin:8px 0"><button id="nr">Marcar todo como leído</button>${window.Notification&&Notification.permission==='default'?'<button id="np">🔔 Activar avisos del dispositivo</button>':''}</div>`+(N.length?N.map(n=>`<div class="nl ${n.read?'':'un'}" data-l="${n.lot_id||''}"><b>${esc(n.title)}</b><div class="sub">${esc(n.body)}</div><div class="sub">${dt(n.created_at)}</div></div>`).join(''):'<p class="mu">Sin avisos por ahora.</p>'));
+  $('#nr').onclick=async()=>{await sb.from('notifications').update({read:true}).eq('user_id',S.me.id).eq('read',false);closeM();load()};
+  if($('#np'))$('#np').onclick=async()=>{await Notification.requestPermission();openBell()};
+  document.querySelectorAll('.nl').forEach(d=>d.onclick=()=>{const l=S.allLots.find(x=>x.id===d.dataset.l);closeM();if(l){S.pid=l.projectId;S.lots=S.allLots.filter(x=>x.projectId===S.pid);S.tab='plano';render();setTimeout(()=>openLot(l.id),60)}});
+}
+/* --- panel de control --- */
+function vPanel(){
+  const L=S.lots.filter(l=>l.name),n=L.length,c={libre:0,sep:0,separado:0,vendido:0};L.forEach(l=>c[l.status]++);
+  const sp=S.seps.filter(s=>s.projectId===S.pid),paid=sp.filter(s=>['confirmada','vendida'].includes(s.status)),rec=paid.reduce((a,s)=>a+(+s.amount||0),0);
+  const by={};sp.filter(s=>!['anulada','vencida'].includes(s.status)).forEach(s=>{const k=s.sellerName||'—',o=by[k]||(by[k]={n:0,v:0});o.n++;if(s.status==='vendida')o.v++});
+  const rk=Object.entries(by).sort((a,b)=>b[1].n-a[1].n),mx=rk.length?rk[0][1].n:1,staff=S.me.role!=='vendedor',att=[];
+  sp.filter(s=>s.status==='pendiente').forEach(s=>att.push([`Separación pendiente de confirmar · ${esc(s.lotName)}`,`${esc(s.sellerName)}${s.priceStatus==='pendiente'?' · cambio de precio por resolver':''}`,s.lotId]));
+  sp.filter(s=>s.status==='confirmada'&&s.expiresAt&&s.expiresAt-Date.now()<3*864e5).forEach(s=>att.push([`Separado por vencer · ${esc(s.lotName)}`,`Vence ${dt(s.expiresAt)}`,s.lotId]));
+  const seg=(k,col)=>`<span style="width:${n?c[k]/n*100:0}%;background:var(--${col})" title="${ST[k][0]}: ${c[k]}"></span>`;
+  $('#v').innerHTML=`<div class="kpis">${[['🏷️','Lotes',n],['🟢','Libres',c.libre],['🟡','En separación',c.sep],['🔴','Separados',c.separado],['🔵','Vendidos',c.vendido],['💰','Recaudado en separaciones',money(rec)],['📈','Avance',n?Math.round((c.separado+c.vendido)/n*100)+'%':'0%']].map(k=>`<div class="kpi"><div class="sub">${k[0]} ${k[1]}</div><div class="v">${k[2]}</div></div>`).join('')}</div>
+  <div class="card" style="margin-top:12px"><h2>Estado de los lotes</h2><div class="sbar">${seg('libre','g')}${seg('sep','y')}${seg('separado','r')}${seg('vendido','b')}</div></div>
+  ${staff?`<div class="card" style="margin-top:12px"><h2>Requiere atención</h2>${att.length?att.map(a=>`<div class="att"><div><b>${a[0]}</b><div class="sub">${a[1]}</div></div><button data-o="${a[2]}">Abrir</button></div>`).join(''):'<p class="mu" style="margin:0">Todo al día ✔</p>'}</div>`:''}
+  <div class="card" style="margin-top:12px"><h2>${staff?'Ranking de vendedores':'Mis separaciones'}</h2>${rk.length?rk.map(([k,o])=>`<div class="hb"><span>${esc(k)}</span><i style="width:${o.n/mx*100}%"></i><b>${o.n}${o.v?` · ${o.v} vend.`:''}</b></div>`).join(''):'<p class="mu" style="margin:0">Sin separaciones todavía.</p>'}</div>`;
+  document.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>openLot(b.dataset.o));
+}
+/* --- historial --- */
+const ENT={lots:'lote',separations:'separación',projects:'proyecto',plans:'plano',profiles:'usuario'},ACT={INSERT:'Creó',UPDATE:'Modificó',DELETE:'Eliminó'};
+const KEYS={status:'estado',name:'nombre',area:'tamaño',deposit:'monto separación',price_cash:'precio contado',price_fin:'precio cuotas',active:'activo',perms:'permisos',access_all:'acceso total',price_status:'estado del precio',sep_days:'días separado',share_active:'enlace externo',role:'rol',confirmed_name:'confirmado por',contract_url:'contrato',plan_id:'plano',phone:'celular'};
+const fv=v=>v===null||v===undefined||v===''?'—':typeof v==='object'?JSON.stringify(v):String(v).slice(0,40);
+const sumDetail=a=>a.action==='UPDATE'?Object.entries(a.detail||{}).filter(([k])=>!['number','confirmed_by','confirmed_at','expires_at','sold_at','lot_number'].includes(k)).slice(0,4).map(([k,v])=>`· ${KEYS[k]||k}: ${fv(v.de)} → ${fv(v.a)}`).join(' '):'';
+async function vHist(){
+  const{data,error}=await sb.from('audit_log').select('*').order('at',{ascending:false}).limit(400),A=data||[];
+  if(error){$('#v').innerHTML=`<div class="card err">${esc(error.message)}</div>`;return}
+  $('#v').innerHTML=`<div class="card"><div class="bar"><h1>Historial de actividad</h1><div class="grp" style="margin-left:auto"><select id="hf" style="width:auto"><option value="">Todo</option>${[...new Set(A.map(a=>a.entity))].map(e=>`<option value="${e}">${ENT[e]||e}</option>`).join('')}</select><input id="hq" placeholder="Buscar…" style="width:190px"></div></div><div class="tw"><table id="ht"></table></div></div>`;
+  const draw=()=>{const f=$('#hf').value,q=$('#hq').value.toLowerCase();$('#ht').innerHTML='<tr><th>Fecha y hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr>'+A.filter(a=>(!f||a.entity===f)&&(!q||JSON.stringify([a.actor_name,a.label,a.detail]).toLowerCase().includes(q))).slice(0,300).map(a=>`<tr><td>${dt(a.at)}</td><td>${esc(a.actor_name)}</td><td>${esc(ROL[a.actor_role]||'—')}</td><td>${ACT[a.action]} ${ENT[a.entity]||a.entity}</td><td style="white-space:normal;min-width:230px"><b>${esc(a.label||'')}</b> ${esc(sumDetail(a))}</td></tr>`).join('')};
+  $('#hf').onchange=draw;$('#hq').oninput=draw;draw();
+}
+/* --- asociar lotes en orden --- */
+async function autoAssign(){
+  const cp=curPlan(),pol=S.lots.filter(l=>l.poly&&!l.name&&l.planId===cp.id),rec=S.lots.filter(l=>l.name&&!l.poly).sort((a,b)=>nat(a.name,b.name));
+  const cen=l=>{let x=0,y=0;const k=l.poly.length/2;for(let i=0;i<l.poly.length;i+=2){x+=l.poly[i];y+=l.poly[i+1]}return[x/k,y/k]};
+  const hs=pol.map(l=>{const ys=l.poly.filter((_,i)=>i%2);return Math.max(...ys)-Math.min(...ys)}).sort((a,b)=>a-b),mh=hs[hs.length>>1]||.05;
+  const P=pol.map(l=>({l,c:cen(l)})).sort((a,b)=>a.c[1]-b.c[1]),rows=[];P.forEach(p=>{const r=rows[rows.length-1];if(r&&p.c[1]-r.y<mh*.6)r.a.push(p);else rows.push({y:p.c[1],a:[p]})});
+  const ord=rows.flatMap(r=>r.a.sort((a,b)=>a.c[0]-b.c[0])).map(p=>p.l),n=Math.min(ord.length,rec.length);
+  if(!confirm(`Se asociarán ${n} lotes en orden de lectura del plano (de arriba a abajo, de izquierda a derecha). Después puedes corregir cualquiera con «Quitar del plano». ¿Continuar?`))return;
+  $('#aq').disabled=true;for(let i=0;i<n;i++){$('#aq').textContent=`${i+1}/${n}…`;const{error}=await sb.rpc('assign_lot',{p_poly:ord[i].id,p_record:rec[i].id});if(error){alert(error.message);break}}load();
+}
+/* --- guardar plano (con ventana) --- */
+function saveDraft(){
+  const D=S.draft;
+  formModal('Nombre del plano',[{id:'fpn',label:'Nombre del plano',value:`Plano ${curPlans().length+1}`}],async v=>{
+    if(!v.fpn)return'Escribe un nombre';
+    const path=`${S.pid}-${Date.now()}.jpg`;let x=await sb.storage.from('planos').upload(path,D.blob,{contentType:'image/jpeg'});if(x.error)return x.error.message;
+    x=await sb.from('plans').insert({project_id:S.pid,name:v.fpn,plan_path:path,plan_w:D.w,plan_h:D.h}).select().single();if(x.error)return x.error.message;const id=x.data.id;
+    x=await sb.from('lots').insert(D.items.filter(i=>!i.off).map(i=>({project_id:S.pid,plan_id:id,status:'libre',poly:i.p})));if(x.error)return x.error.message;
+    S.planId=id;LS.set('plan',id);S.draft=null;S.view=null;S.tab='lotes';S.hint=1;load();
+  },'Aceptar y guardar');
+}
+/* --- estructura: panel lateral + cabecera --- */
+function renderSide(){
+  const r=S.me.role,adm=r==='admin',B=S.brand||{},I=(t,ic,l)=>`<button class="ni ${S.tab===t?'on':''}" data-t="${t}"><span class="ic">${ic}</span>${l}</button>`;
+  let h=`<div class="co">${B.logo?`<img src="${B.logo}" alt="">`:''}<div><b>${esc(B.name||'Mi empresa')}</b><div class="sub">${ROL[r]}</div></div></div>`;
+  if(r!=='externo'){h+='<div class="nt">Operación</div>'+I('panel','📊','Panel')+I('plano','🗺️','Plano')+I('regs','📋',r==='vendedor'?'Mis separaciones':'Registros');
+    if(adm||canEditLots())h+='<div class="nt">Gestión</div>'+I('lotes','🏷️','Lotes');
+    if(adm)h+=I('users','👥','Usuarios')+I('perms','🛡️','Permisos')+I('share','🔗','Enlaces externos')+I('hist','🕘','Historial')+I('brand','🎨','Empresa')}
+  $('#side').innerHTML=h;
+  document.querySelectorAll('#side [data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;document.body.classList.remove('nav-open');render()});
+}
+function render(){
+  if(!S.me)return;const r=S.me.role,adm=r==='admin',ext=r==='externo';
+  document.body.classList.toggle('no-side',ext);
+  if(!S.navInit){S.navInit=1;if(LS.get('nav_off')==='1')document.body.classList.add('nav-off')}
+  $('#who').textContent=S.me.name+' · '+ROL[r];
+  if(S.ext&&!S.projects.length){$('#hr').innerHTML='';$('#side').innerHTML='';$('#app').innerHTML='<div class="card" style="text-align:center">🔒 Este enlace informativo no está disponible o fue desactivado.</div>';return}
+  const un=(S.notes||[]).filter(n=>!n.read).length;
+  $('#hr').innerHTML=ext?'<button id="lg">Ingresar</button>':`<button id="bl" class="bell" title="Avisos">🔔${un?`<span class="cnt">${un}</span>`:''}</button><button id="pw" title="Cambiar mi contraseña">🔑</button><button id="out">Salir</button>`;
+  $('#tg').onclick=()=>{if(matchMedia('(max-width:900px)').matches)document.body.classList.toggle('nav-open');else{const o=document.body.classList.toggle('nav-off');LS.set('nav_off',o?'1':'0')}};
+  $('#bd').onclick=()=>document.body.classList.remove('nav-open');
+  if($('#lg'))$('#lg').onclick=()=>{location.hash='';location.reload()};
+  if($('#bl'))$('#bl').onclick=openBell;
+  if($('#pw'))$('#pw').onclick=()=>formModal('Cambiar mi contraseña',[{id:'fp1',label:'Nueva contraseña (mínimo 6)',pw:1},{id:'fp2',label:'Repetir contraseña',pw:1}],async v=>{if(v.fp1.length<6)return'Mínimo 6 caracteres';if(v.fp1!==v.fp2)return'Las contraseñas no coinciden';const{error}=await sb.auth.updateUser({password:v.fp1});return error?error.message:null});
+  if($('#out'))$('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
+  const allowed=ext?['plano']:['panel','plano','regs'].concat(adm?['lotes','users','perms','share','hist','brand']:canEditLots()?['lotes']:[]);
+  if(!allowed.includes(S.tab))S.tab='plano';
+  renderSide();
+  const cpj=curP(),showP=!ext&&['panel','plano','regs','lotes'].includes(S.tab);
+  const pb=ext?`<div class="bar"><h1>${esc(cpj.name)}</h1></div>`:showP?`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="bpn">＋ Proyecto</button>'+(cpj?`<button id="bpy">⏱ ${cpj.sepDays?cpj.sepDays+' días':'Sin límite'}</button><button id="bpr">Renombrar</button><button id="bpd" class="dg">Eliminar</button>`:'')+'</div>':''}</div>`:'';
+  $('#app').innerHTML=pb+'<div id="v"></div>';
+  const reload=()=>{S.draft=null;S.view=null;S.planId=null;load()};
+  if($('#ps'))$('#ps').onchange=e=>{S.pid=e.target.value;LS.set('pid',S.pid);S.draft=null;S.view=null;S.planId=null;load()};
+  if($('#bpn'))$('#bpn').onclick=()=>formModal('Nuevo proyecto',[{id:'fnm',label:'Nombre del proyecto'}],async v=>{if(!v.fnm)return'Escribe un nombre';const{data,error}=await sb.from('projects').insert({name:v.fnm}).select().single();if(error)return error.message;S.pid=data.id;LS.set('pid',S.pid);S.tab='plano';reload()});
+  if($('#bpr'))$('#bpr').onclick=()=>formModal('Renombrar proyecto',[{id:'fnm',label:'Nombre del proyecto',value:cpj.name}],async v=>{if(!v.fnm)return'Escribe un nombre';const{error}=await sb.from('projects').update({name:v.fnm}).eq('id',S.pid);if(error)return error.message;load()});
+  if($('#bpy'))$('#bpy').onclick=()=>formModal('Días en estado «Separado»',[{id:'fdy',label:'Días antes de liberar el lote (vacío = sin límite)',type:'number',value:cpj.sepDays||''}],async v=>{const n=v.fdy===''?null:parseInt(v.fdy);if(n!==null&&!(n>0))return'Número inválido';const{error}=await sb.from('projects').update({sep_days:n}).eq('id',S.pid);if(error)return error.message;load()});
+  if($('#bpd'))$('#bpd').onclick=async()=>{if(confirm(`¿Eliminar «${cpj.name}» con sus planos, lotes y registros? No se puede deshacer.`)){const{error}=await sb.from('projects').delete().eq('id',S.pid);if(error)alert(error.message);S.pid=null;reload()}};
+  ({panel:vPanel,plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,perms:vPerms,share:vShare,hist:vHist,brand:vBrand})[S.tab]();
 }
 
 boot();

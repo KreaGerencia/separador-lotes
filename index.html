@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lotes">
 <style>:root{--bg:#f3f5fa;--card:#fff;--tx:#0f1b33;--mu:#66738c;--bd:#e3e8f1;--ac:#0b5ed7;--ac2:#0aa2c0;--g:#2e9d57;--y:#e9b100;--r:#d63b3b;--b:#2563eb;--sh:0 1px 2px rgba(15,27,51,.05),0 10px 28px rgba(15,27,51,.07);--side:248px;color-scheme:light}
-@media(prefers-color-scheme:dark){:root{--bg:#0a0f1d;--card:#121a2c;--tx:#e9eef8;--mu:#93a0b8;--bd:#222d44;--sh:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0a0f1d;--card:#121a2c;--tx:#e9eef8;--mu:#93a0b8;--bd:#222d44;--sh:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.25);color-scheme:dark}@media(prefers-color-scheme:dark){:root:not([data-theme]){--bg:#0a0f1d;--card:#121a2c;--tx:#e9eef8;--mu:#93a0b8;--bd:#222d44;--sh:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.25);color-scheme:dark}}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:var(--side) minmax(0,1fr);grid-template-rows:auto 1fr;grid-template-areas:"h h" "s m";padding-top:env(safe-area-inset-top)}
 body.nav-off,body.no-side{--side:0px}body.nav-off #side,body.no-side #side,body.no-side #tg{display:none}
@@ -53,7 +53,7 @@ img.rc{width:100%;max-height:300px;object-fit:contain;border:1px solid var(--bd)
 .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.imgs img{width:100%;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--bd);cursor:zoom-in;background:var(--bg)}
 .ov{position:fixed;inset:0;background:rgba(8,12,22,.6);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;z-index:60}
 .md{position:relative;background:var(--card);width:100%;max-width:500px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
-.md>h1{padding-right:44px}@media(min-width:600px){.ov{align-items:center}.md{border-radius:22px}}
+.md.hx>h1{padding-right:44px}@media(min-width:600px){.ov{align-items:center}.md{border-radius:22px}}
 .x{position:absolute;right:12px;top:12px;width:36px;height:36px;padding:0;border-radius:50%;font-size:15px;z-index:2}
 #viewer{display:none;position:fixed;inset:0;background:rgba(4,7,14,.92);z-index:80;align-items:center;justify-content:center}#viewer img{max-width:96vw;max-height:90vh;border-radius:10px}#viewer .x{position:fixed;top:calc(14px + env(safe-area-inset-top));right:14px}
 .login{max-width:400px;margin:7vh auto;text-align:center}.login img{width:88px}.login label,.login .err{text-align:left}
@@ -72,6 +72,9 @@ img.rc{width:100%;max-height:300px;object-fit:contain;border:1px solid var(--bd)
 .lp.dr polygon{fill:var(--ac);stroke:var(--ac)}.lp.inc polygon{stroke:var(--r);stroke-dasharray:6 4}
 .lp.un polygon,.lp.off polygon{fill:#888;fill-opacity:.18;stroke:var(--r);stroke-dasharray:6 4}
 .lp text{text-anchor:middle;dominant-baseline:central;font-weight:700;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:.15em;pointer-events:none}.lp:hover polygon{fill-opacity:.65}
+.sw{position:relative;display:inline-block;width:50px;height:28px;margin:0;flex:none}.sw input{opacity:0;width:0;height:0;position:absolute}.sw span{position:absolute;inset:0;background:#9aa4b8;border-radius:99px;transition:.2s;cursor:pointer}.sw span:before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.sw input:checked+span{background:var(--g)}.sw input:checked+span:before{transform:translateX(22px)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f1b33;color:#fff;padding:11px 18px;border-radius:12px;z-index:90;box-shadow:var(--sh);max-width:90vw;font-size:14px}
+button.on{border-color:var(--ac);color:var(--ac)}.bg-n{background:#8793a8}
 </style></head><body class="no-side">
 <header><button id="tg" class="ham" aria-label="Menú">☰</button><div class="brand"><img src="logo.png" alt=""><div><h1>Separador de Lotes</h1><div class="sub" id="who"></div></div></div><div class="grp" id="hr"></div></header>
 <main id="app"><p class="mu">Cargando…</p></main>
@@ -83,6 +86,7 @@ img.rc{width:100%;max-height:300px;object-fit:contain;border:1px solid var(--bd)
 /* ===== Separador de Lotes · PWA con Supabase ===== */
 const SB_URL='https://xluwlqmxkgyykxvnidvf.supabase.co',SB_KEY='sb_publishable_TUPwo0QrbOuEXCMSqAgtzg_TBNlP2Xv';
 const sb=supabase.createClient(SB_URL,SB_KEY);
+sb.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){S.recovery=true;if(S.me)forcePw()}});
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money=n=>'S/ '+Number(n||0).toLocaleString('es-PE');
@@ -96,47 +100,25 @@ const pos=v=>+v>0;
 const complete=l=>!!(String(l.name||'').trim()&&pos(l.area)&&pos(l.deposit)&&pos(l.priceCash)&&pos(l.priceFin));
 const canEditLots=()=>hasPerm('edit_lots');
 const curP=()=>S.projects.find(p=>p.id===S.pid)||null;
-function closeM(){$('#modal').innerHTML='';clearInterval(S.hb);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}}
 async function shrink(f,max=4000,q=.85){const im=await createImageBitmap(f),k=Math.min(1,max/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{w,h,blob:await new Promise(r=>c.toBlob(r,'image/jpeg',q))}}
 /* --- mapeo de filas --- */
 const pUrl=p=>sb.storage.from('planos').getPublicUrl(p).data.publicUrl;
 const mProj=r=>({id:r.id,name:r.name,share:!!r.share_active,sepDays:r.sep_days,plan:r.plan_path?{url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h}:null});
 const mLot=r=>({id:r.id,projectId:r.project_id,name:r.name,number:r.number,area:r.area,deposit:r.deposit,priceCash:r.price_cash,priceFin:r.price_fin,status:r.status,poly:r.poly,planId:r.plan_id});
-const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,amount:r.amount,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0,opNumber:r.op_number,opDate:r.op_date,priceListed:r.price_listed,priceRequested:r.price_requested,priceStatus:r.price_status,priceNote:r.price_note,contractUrl:r.contract_url,soldByName:r.sold_by_name,expiresAt:r.expires_at?+new Date(r.expires_at):0,dniFront:r.dni_front_path,dniBack:r.dni_back_path});
+const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,amount:r.amount,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0,priceFinal:r.price_final,soldAt:r.sold_at?+new Date(r.sold_at):0,opNumber:r.op_number,opDate:r.op_date,priceListed:r.price_listed,priceRequested:r.price_requested,priceStatus:r.price_status,priceNote:r.price_note,contractUrl:r.contract_url,soldByName:r.sold_by_name,expiresAt:r.expires_at?+new Date(r.expires_at):0,dniFront:r.dni_front_path,dniBack:r.dni_back_path});
 const lastSep=id=>S.seps.filter(s=>s.lotId===id&&!['anulada','vencida'].includes(s.status)).sort((a,b)=>b.createdAt-a.createdAt)[0];
 const sorted=()=>S.lots.filter(l=>l.name).sort((a,b)=>String(a.name).localeCompare(String(b.name),undefined,{numeric:true,sensitivity:'base'}));
 const cli=x=>`<div class="kv"><div><b>Cliente</b>${esc(x.clientName)}</div><div><b>DNI del cliente</b>${esc(x.clientDni)}</div><div><b>Tipo de financiamiento</b>${esc(x.finType)}</div><div><b>Cuotas</b>${esc(x.cuotas)}</div></div>`;
 /* --- carga y tiempo real --- */
-function live(){const ch=sb.channel('rt');['lots','separations','projects','plans','lot_locks','lot_sep_info','notifications'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{clearTimeout(S.t);S.t=setTimeout(load,400)}));ch.subscribe()}
+function live(){const ch=sb.channel('rt');['lots','separations','projects','plans','lot_locks','lot_sep_info','notifications','installments','ocr_models'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{clearTimeout(S.t);S.t=setTimeout(load,400)}));ch.subscribe()}
 /* --- sesión --- */
-function loginView(msg){
-  $('#who').textContent='';$('#hr').innerHTML='';
-  $('#app').innerHTML=`<div class="card login"><img src="logo.png" alt=""><h1 style="margin:8px 0 2px">Separador de Lotes</h1><p class="sub">Inicia sesión para continuar</p><label>DNI (administrador: admin)</label><input id="ld" autocomplete="username">${pwField('lp','Contraseña')}<div class="err" id="le">${esc(msg||'')}</div><button class="p" style="width:100%;margin-top:12px" id="lb">Entrar</button></div>`;
-  const go=async()=>{$('#lb').disabled=true;const{error}=await sb.auth.signInWithPassword({email:mail($('#ld').value),password:$('#lp').value});
-    if(error){$('#le').textContent='DNI o contraseña incorrectos.';$('#lb').disabled=false;return}await enter()};
-  $('#lb').onclick=go;$('#lp').onkeydown=e=>{if(e.key==='Enter')go()};
-}
 async function enter(){
   const{data:{user}}=await sb.auth.getUser();const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
   if(!p||!p.active){await sb.auth.signOut();loginView('Usuario desactivado o sin perfil. Contacta al administrador.');return}
-  S.me={id:p.id,dni:p.dni,name:p.name,role:p.role,perms:p.perms||[]};await sb.rpc('expire_separations');await load();live();
+  S.me={id:p.id,dni:p.dni,name:p.name,role:p.role,perms:p.perms||[],email:p.email};await sb.rpc('expire_separations');await sb.rpc('remind_installments');await load();live();if(S.recovery||p.must_change_pw)forcePw();
 }
 /* --- estructura --- */
 /* --- ficha del lote --- */
-function bindForm(l){
-  const q=i=>$('#'+i),chk=()=>{const c=q('ft').value==='En cuotas',cu=q('cu');cu.disabled=!c;
-    if(!c){cu.type='text';cu.value='Sin Cuotas'}else if(cu.type!=='number'){cu.type='number';cu.value='';cu.min=2;cu.step=1}
-    q('reg').disabled=!(q('cn').value.trim()&&/^\d{8,12}$/.test(q('cd').value.trim())&&(!c||(Number.isInteger(+cu.value)&&+cu.value>=2))&&q('fl').files[0])};
-  ['cn','cd','ft','cu'].forEach(i=>q(i).oninput=chk);
-  q('fl').onchange=()=>{const f=q('fl').files[0];if(f){const p=q('pv');p.src=URL.createObjectURL(f);p.style.display='block'}chk()};
-  q('reg').onclick=async()=>{const b=q('reg'),er=q('me'),c=q('ft').value==='En cuotas';b.disabled=true;b.textContent='Guardando…';let path=null;
-    try{const{blob}=await shrink(q('fl').files[0],1600,.8);path=`${S.me.id}/${Date.now()}.jpg`;
-      let x=await sb.storage.from('recibos').upload(path,blob,{contentType:'image/jpeg'});if(x.error)throw x.error;
-      x=await sb.rpc('register_separation',{p_lot:l.id,p_client_name:q('cn').value.trim(),p_client_dni:q('cd').value.trim(),p_fin_type:q('ft').value,p_installments:c?+q('cu').value:null,p_receipt:path});
-      if(x.error){await sb.storage.from('recibos').remove([path]);throw x.error}closeM();load()}
-    catch(e){er.textContent=e.message||'Error al registrar.';b.disabled=false;b.textContent='Registrar Separación'}};
-  chk();
-}
 /* --- guardar plano detectado --- */
 /* --- pestañas --- */
 function vRegs(){
@@ -147,23 +129,6 @@ function vRegs(){
   document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLot(b.dataset.l));
 }
 async function fn(body){const{data,error}=await sb.functions.invoke('admin-users',{body});if(error){let m=error.message;try{m=(await error.context.json()).error||m}catch(e){}throw new Error(m)}if(data&&data.error)throw new Error(data.error);return data}
-async function vUsers(){
-  const{data}=await sb.from('profiles').select('*').order('created_at'),U=(data||[]).filter(u=>u.role!=='admin');
-  $('#v').innerHTML=`<div class="card"><h1>Nuevo usuario</h1><div class="row"><div><label>DNI</label><input id="u1" inputmode="numeric" maxlength="12"></div><div><label>Nombre</label><input id="u2"></div><div><label>Celular</label><input id="u3" inputmode="tel"></div>
-  <div><label>Rol</label><select id="u4"><option value="vendedor">Vendedor</option><option value="administrativo">Administrativo</option></select></div><div>${pwField('u5','Contraseña (mín. 6)')}</div></div><div class="err" id="le"></div><button class="p" id="add" style="margin-top:10px">Crear usuario</button></div>
-  <div class="card tw" style="margin-top:12px"><table><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Rol</th><th>Estado</th><th>Acceso</th><th></th></tr>`+U.map(u=>`<tr><td>${esc(u.dni)}</td><td>${esc(u.name)}</td><td>${esc(u.phone)}</td><td>${ROL[u.role]}</td><td>${u.active?'Activo':'<span class="err">Inactivo</span>'}</td>
-  <td><button data-ac="${u.id}">${u.access_all?'Todos los planos':'Planos seleccionados'}</button></td><td><button data-a="${u.id}">${u.active?'Desactivar':'Activar'}</button> <button data-p="${u.id}">Cambiar clave</button> <button data-x="${u.id}">Borrar</button></td></tr>`).join('')+'</table></div>';
-  const by=id=>U.find(u=>u.id===id),upd=async(id,v)=>{const{error}=await sb.from('profiles').update(v).eq('id',id);if(error)alert(error.message);vUsers()};
-  $('#add').onclick=async()=>{const v=[1,2,3,4,5].map(i=>$('#u'+i).value.trim());if(v.some(x=>!x)){$('#le').textContent='Completa todos los campos.';return}
-    try{$('#add').disabled=true;await fn({action:'create',dni:v[0],name:v[1],phone:v[2],role:v[3],password:v[4]});vUsers()}catch(e){$('#le').textContent=e.message;$('#add').disabled=false}};
-  document.querySelectorAll('[data-ac]').forEach(b=>b.onclick=()=>openAccess(b.dataset.ac));
-  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>upd(b.dataset.a,{active:!by(b.dataset.a).active}));
-  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>upd(b.dataset.c,{can_edit:!by(b.dataset.c).can_edit}));
-  document.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{const p=prompt('Nueva contraseña para '+by(b.dataset.p).name+' (mín. 6)');if(p)try{await fn({action:'set_password',id:b.dataset.p,password:p});alert('Contraseña actualizada')}catch(e){alert(e.message)}});
-  document.querySelectorAll('[data-x]').forEach(b=>b.onclick=async()=>{if(confirm('¿Borrar a '+by(b.dataset.x).name+'?'))try{await fn({action:'delete',id:b.dataset.x});vUsers()}catch(e){alert(e.message)}});
-}
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-
 /* ===== v4: detección por color a partir de muestras ===== */
 function detectColor(d,samples,tol){
   const{px,w,h}=d,N=w*h,t2=tol*tol,m=new Uint8Array(N);
@@ -227,7 +192,7 @@ function vPlano(){
     <div class="sub" style="margin-top:4px">${D.mode==='drop'?'Toca un lote para descartarlo o recuperarlo.':'Toca un lote que no fue detectado.'} Más tolerancia = detecta tonos más distintos.</div></div>`;
     body=D.items.map((i,k)=>`<g class="lp ${i.off?'off':'dr'}" data-i="${k}">${shape(i.p,W,H,k+1)}</g>`).join('')}
   else{const L=S.lots.filter(l=>l.poly&&l.planId===(curPlan()||{}).id),named=L.filter(l=>l.name),un=L.length-named.length,rec=S.lots.filter(l=>l.name&&!l.poly).length,c={libre:0,sep:0,separado:0,vendido:0};named.forEach(l=>c[l.status]++);
-    top=`${planNav()}<div class="bar" style="margin-bottom:6px">${S.me.role==='externo'?'':`<div class="legend" style="margin:0">${Object.values(ST).map(s=>`<span><span class="dot ${s[2]}"></span>${s[0]}</span>`).join('')}<span><span class="dot dsh"></span>Sin asignar / datos incompletos</span></div>`}<div class="grp" style="margin-left:auto">${up}${adm&&un&&rec&&curPlan()?'<button id="aq">⚡ Asociar en orden</button>':''}</div></div><span id="pe" class="sub"></span>${S.me.role==='externo'?'':`<div class="chips"><span class="chip">🟢 ${c.libre} libres</span><span class="chip">🟡 ${c.sep} en separación</span><span class="chip">🔴 ${c.separado} separados</span><span class="chip">🔵 ${c.vendido} vendidos</span></div>`}${adm&&(un||rec)?`<div class="note">${un?`<b>${un}</b> posibles lotes sin asignar. `:''}${rec?`<b>${rec}</b> lotes registrados sin ubicar. `:''}Toca un lote punteado del plano para asociarlo.${!rec&&un?' Antes, ve a <b>Lotes</b> y sube la plantilla Excel.':''}</div>`:''}`;
+    top=`${planNav()}<div class="bar" style="margin-bottom:6px">${S.me.role==='externo'?'':`<div class="legend" style="margin:0">${Object.values(ST).map(s=>`<span><span class="dot ${s[2]}"></span>${s[0]}</span>`).join('')}<span><span class="dot dsh"></span>Sin asignar / datos incompletos</span></div>`}<div class="grp" style="margin-left:auto">${up}${(adm||canEditLots())&&curPlan()?`<button id="aq" class="${S.quick?'on':''}">${S.quick?'⚡ ACTIVO · siguiente: '+esc((S.lots.filter(x=>x.name&&!x.poly).sort((a,b)=>nat(a.name,b.name))[0]||{name:'—'}).name):'⚡ Asociar en orden'}</button>`:''}</div></div><span id="pe" class="sub"></span>${S.me.role==='externo'?'':`<div class="chips"><span class="chip">🟢 ${c.libre} libres</span><span class="chip">🟡 ${c.sep} en separación</span><span class="chip">🔴 ${c.separado} separados</span><span class="chip">🔵 ${c.vendido} vendidos</span></div>`}${adm&&(un||rec)?`<div class="note">${un?`<b>${un}</b> posibles lotes sin asignar. `:''}${rec?`<b>${rec}</b> lotes registrados sin ubicar. `:''}Toca un lote punteado del plano para asociarlo.${!rec&&un?' Antes, ve a <b>Lotes</b> y sube la plantilla Excel.':''}</div>`:''}`;
     body=L.map(l=>`<g class="lp ${l.name?ST[l.status][1]+(complete(l)?'':' inc'):'un'}" data-id="${l.id}">${shape(l.poly,W,H,l.name?lockMark(l)+lbl(l):'?')}</g>`).join('')}
   $('#v').innerHTML=`<div class="card">${top}<div id="vp" class="vp"><div id="st" class="st"><img src="${plan.url}" width="${W}" height="${H}" draggable="false"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${body}</svg></div><div class="zb"><button id="zi">+</button><button id="zo">−</button><button id="zf">⟲</button><button id="zfs" title="Pantalla completa">⛶</button><button id="z3" title="Vista 3D inclinada">🧊</button></div></div></div>`;
   bindUp();
@@ -338,16 +303,16 @@ const curPlan=()=>curPlans().find(p=>p.id===S.planId)||curPlans()[0]||null;
 const lockMark=l=>{const k=S.locks[l.id];return k&&l.status==='libre'&&new Date(k.until)>new Date()?'🔒':''};
 addEventListener('pagehide',()=>{if(S.lk)sb.rpc('unlock_lot',{p_lot:S.lk})});
 async function load(){
-  let pq=sb.from('projects').select('*').order('created_at'),lq=sb.from('lots').select('*'),plq=sb.from('plans').select('*').order('created_at');
+  let pq=sb.from('projects').select('*').order('created_at'),lq=sb.from(S.ext?'lots_public':'lots').select('*'),plq=sb.from('plans').select('*').order('created_at');
   if(S.ext){pq=pq.eq('id',S.extPid);lq=lq.eq('project_id',S.extPid);plq=plq.eq('project_id',S.extPid)}
   const q=[pq,lq,plq];
-  if(!S.ext)q.push(sb.from('separations').select('*'),sb.from('lot_locks').select('*'),sb.from('lot_sep_info').select('*'),sb.from('profiles').select('role,active,perms,access_all').eq('id',S.me.id).maybeSingle(),sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(40));
-  const[p,l,pl,sp,lk,si,me,nt]=await Promise.all(q);
+  if(!S.ext)q.push(sb.from('separations').select('*'),sb.from('lot_locks').select('*'),sb.from('lot_sep_info').select('*'),sb.from('profiles').select('role,active,perms,access_all').eq('id',S.me.id).maybeSingle(),sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(40),sb.from('installments').select('*'),sb.from('ocr_models').select('*'));
+  const[p,l,pl,sp,lk,si,me,nt,ins,om]=await Promise.all(q);
   if(me&&me.data){if(!me.data.active){await sb.auth.signOut();return location.reload()}S.me.perms=me.data.perms||[]}
   S.projects=(p.data||[]).map(mProj);S.plans=(pl.data||[]).map(mPlan);S.allLots=(l.data||[]).map(mLot);S.seps=sp?(sp.data||[]).map(mSep):[];
   S.locks={};((lk&&lk.data)||[]).forEach(k=>{if(new Date(k.until)>new Date())S.locks[k.lot_id]=k});
   S.sepInfo={};((si&&si.data)||[]).forEach(k=>S.sepInfo[k.lot_id]=k);
-  S.notes=(nt&&nt.data)||[];notifyNew();
+  S.notes=(nt&&nt.data)||[];notifyNew();S.inst=((ins&&ins.data)||[]).map(mInst);S.ocrModels=(om&&om.data)||[];
   if(!S.projects.some(x=>x.id===S.pid))S.pid=(S.projects.find(x=>x.id===LS.get('pid'))||S.projects[0]||{}).id||null;
   const cp=curPlans();if(!cp.some(x=>x.id===S.planId))S.planId=(cp.find(x=>x.id===LS.get('plan'))||cp[0]||{}).id||null;
   S.lots=S.allLots.filter(x=>x.projectId===S.pid);render();
@@ -357,7 +322,7 @@ function planNav(){
   return `<div class="bar" style="margin-bottom:8px">${P.length>1?`<button id="ppv" title="Plano anterior">◀</button><select id="pls">${P.map(p=>`<option value="${p.id}" ${p.id===cp.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><button id="pnx" title="Plano siguiente">▶</button>`:`<b>${esc(cp.name)}</b>`}${adm?'<div class="grp" style="margin-left:auto"><button id="prn">Renombrar plano</button><button id="pdl" class="dg">Eliminar plano</button></div>':''}</div>`;
 }
 function bindUp(){
-  if($('#aq'))$('#aq').onclick=autoAssign;
+  if($('#aq'))$('#aq').onclick=quickToggle;
   document.querySelectorAll('.pf').forEach(f=>f.onchange=async()=>{const file=f.files[0];if(!file)return;const pe=$('#pe');if(pe)pe.textContent='Cargando plano…';await new Promise(r=>setTimeout(r,30));
     try{const{w,h,blob}=await shrink(file,4000,.9),im=await createImageBitmap(blob),k=Math.min(1,2400/Math.max(w,h)),dw=Math.round(w*k),dh=Math.round(h*k),c=document.createElement('canvas');c.width=dw;c.height=dh;const x=c.getContext('2d');x.drawImage(im,0,0,dw,dh);
       S.draft={blob,url:URL.createObjectURL(blob),w,h,d:{px:x.getImageData(0,0,dw,dh).data,w:dw,h:dh},step:'mark',samples:[],pts:[],items:[],tol:40,mode:'drop'};S.view=null;render()}catch(e){if(pe)pe.textContent='Error: '+(e.message||e)}});
@@ -397,64 +362,6 @@ const sepForm=()=>`<h3 class="sec">1 · Documento del cliente</h3>${fileField('d
 <div class="row" id="prq" style="display:none"><div><label>Precio solicitado (S/.)</label><input id="pr" type="number" inputmode="decimal" step="any"></div><div><label>Motivo (opcional)</label><input id="pn"></div></div>
 <h3 class="sec">3 · Pago de la separación</h3>${fileField('rc','Foto del recibo de separación')}<div class="row"><div><label>N° de operación</label><input id="on"></div><div><label>Fecha de operación</label><input id="od" type="date"></div></div>
 <div class="err" id="me2"></div><button class="p" id="reg" style="width:100%;margin-top:12px" disabled>Registrar Separación</button>`;
-function bindForm(l){
-  const F={},q=i=>$('#'+i),price=()=>q('ft').value==='En cuotas'?l.priceFin:l.priceCash;
-  const chk=()=>{const c=q('ft').value==='En cuotas',cu=q('cu'),rq=q('pc').checked;cu.disabled=!c;
-    if(!c){cu.type='text';cu.value='Sin Cuotas'}else if(cu.type!=='number'){cu.type='number';cu.value='';cu.min=2;cu.step=1}
-    q('plb').textContent=c?'Precio en cuotas':'Precio al contado';q('plv').textContent=money(price());q('prq').style.display=rq?'':'none';
-    q('reg').disabled=!(q('cf1').value.trim()&&q('cl1').value.trim()&&/^\d{8,12}$/.test(q('cd').value.trim())&&F.df&&F.db&&F.rc&&q('on').value.trim()&&q('od').value&&(!c||(Number.isInteger(+cu.value)&&+cu.value>=2))&&(!rq||(pos(q('pr').value)&&+q('pr').value!==price())))};
-  document.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const id=inp.dataset.f,m=q('ocr_'+id);m.textContent='Procesando imagen…';
-    try{const{blob}=await shrink(f,1800,.9);F[id]=blob;const p=q('pv_'+id);p.src=URL.createObjectURL(blob);p.style.display='block';chk();
-      if(id==='df'||id==='rc'){m.textContent='Leyendo datos de la imagen…';const t=await ocr(blob);
-        if(id==='df'){const d=parseDni(t);if(d.first)q('cf1').value=d.first;if(d.last)q('cl1').value=d.last;if(d.dni)q('cd').value=d.dni;m.textContent=(d.first||d.last||d.dni)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el documento; completa los datos.'}
-        else{const d=parseReceipt(t);if(d.op)q('on').value=d.op;if(d.date)q('od').value=d.date;m.textContent=(d.op||d.date)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el recibo; completa los datos.'}
-      }else m.textContent='';chk()}catch(e){m.textContent='No se pudo leer la imagen automáticamente; completa los datos.';chk()}});
-  ['cf1','cl1','cd','ft','cu','pr','on','od'].forEach(i=>q(i).oninput=chk);q('pc').onchange=chk;
-  q('reg').onclick=async()=>{const b=q('reg'),er=q('me2'),c=q('ft').value==='En cuotas',up=[];b.disabled=true;b.textContent='Guardando…';
-    try{const base=`${S.me.id}/${Date.now()}`,P={df:base+'-dni-anverso.jpg',db:base+'-dni-reverso.jpg',rc:base+'-recibo.jpg'};
-      for(const k of['df','db','rc']){const bk=k==='rc'?'recibos':'documentos',x=await sb.storage.from(bk).upload(P[k],F[k],{contentType:'image/jpeg'});if(x.error)throw x.error;up.push([bk,P[k]])}
-      const x=await sb.rpc('register_separation',{p_lot:l.id,p_first:q('cf1').value.trim(),p_last:q('cl1').value.trim(),p_dni:q('cd').value.trim(),p_fin_type:q('ft').value,p_installments:c?+q('cu').value:null,p_receipt:P.rc,p_dni_front:P.df,p_dni_back:P.db,p_op_number:q('on').value.trim(),p_op_date:q('od').value,p_price_requested:q('pc').checked?+q('pr').value:null,p_price_note:q('pn').value.trim()||null});
-      if(x.error){for(const[bk,pa]of up)await sb.storage.from(bk).remove([pa]);throw x.error}
-      S.lk=null;closeM();load();
-    }catch(e){er.textContent=e.message||'Error al registrar.';b.disabled=false;b.textContent='Registrar Separación'}};
-  chk();
-}
-async function openLot(id){
-  const l=S.lots.find(x=>x.id===id);if(!l)return;if(!l.name)return openFree(l);
-  const r=S.me.role,st=ST[l.status],sp=lastSep(id),si=S.sepInfo[id],lk=S.locks[id];let act='',note='';
-  if(r==='vendedor'&&l.status==='libre'){
-    if(!complete(l))note='<div class="note" style="border-color:var(--r)">⚠️ <b>Datos incompletos:</b> este lote aún no está disponible para separación.</div>';
-    else{const{error}=await sb.rpc('lock_lot',{p_lot:id});if(error)note=`<div class="note" style="border-color:var(--y)">🔒 ${esc(error.message)}</div>`;
-      else{S.lk=id;clearInterval(S.hb);S.hb=setInterval(()=>sb.rpc('lock_lot',{p_lot:id}),60000);act=sepForm()}}
-  }else if(lk&&l.status==='libre'&&r!=='externo')note=`<div class="note" style="border-color:var(--y)">🔒 En proceso de separación por <b>${esc(lk.user_name)}</b></div>`;
-  if(si&&l.status!=='libre'&&r!=='externo')note+=`<div class="sub" style="margin:8px 0">Separado por <b>${esc(si.seller_name)}</b> · ${dt(si.sep_at)}</div>`;
-  if(sp&&r!=='externo'&&l.status!=='libre'){
-    act+=cli(sp)+`<div class="kv"><div><b>N° de operación</b>${esc(sp.opNumber)}</div><div><b>Fecha de operación</b>${esc(sp.opDate)}</div></div>`;
-    if(sp.priceStatus!=='ninguno')act+=`<div class="note">💲 Precio solicitado: <b>${money(sp.priceRequested)}</b> (lista ${money(sp.priceListed)}) · <b>${esc(sp.priceStatus)}</b>${sp.priceNote?' · '+esc(sp.priceNote):''}</div>`;
-    if(l.status==='separado'&&sp.expiresAt)act+=`<div class="sub">Vence el ${dt(sp.expiresAt)}</div>`;
-    if(sp.contractUrl)act+=`<div class="sub">Contrato: <a href="${esc(sp.contractUrl)}" target="_blank" rel="noopener">abrir enlace</a> · vendido por ${esc(sp.soldByName)}</div>`;
-    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="showImg(this.src)">`).join('')}</div>`;
-    const pp=sp.priceStatus==='pendiente';
-    if(pp&&r!=='vendedor'&&!hasPerm('approve_price'))act+='<div class="note">⏳ Un usuario con permiso debe aprobar o rechazar primero el cambio de precio.</div>';
-    if(hasPerm('approve_price')&&pp)act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
-    if(r==='administrativo'&&l.status==='sep')act+=`<button class="ok" id="cf" ${pp?'disabled':''} style="width:100%;margin-top:12px">Confirmar separación</button>`+(pp?'<div class="sub">Se habilita cuando el precio sea aprobado o rechazado.</div>':'');
-    if(hasPerm('mark_sold')&&l.status==='separado')act+='<label>Enlace del contrato (obligatorio)</label><input id="ct" placeholder="https://…"><button class="p" id="sold" style="width:100%;margin-top:8px">Marcar como Vendido</button>';
-  }
-  if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
-  if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
-  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
-  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div>${r==='vendedor'&&l.status==='libre'?'':`<div><b>Precio contado</b>${money(l.priceCash)}</div><div><b>Precio en cuotas</b>${money(l.priceFin)}</div>`}</div>${note}${act}<div class="err" id="me"></div><button style="width:100%;margin-top:10px" id="cl">Cerrar</button>`);
-  const rpc=async(fnm,args)=>{const{error}=await sb.rpc(fnm,args);if(error){$('#me').textContent=error.message;return false}closeM();load();return true};
-  $('#cl').onclick=closeM;
-  if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
-  if($('#ua'))$('#ua').onclick=()=>rpc('unassign_lot',{p_lot:l.id});
-  if($('#lb1'))$('#lb1').onclick=()=>{if(confirm('¿Liberar este lote y anular su separación?'))rpc('release_lot',{p_lot:l.id})};
-  if($('#cf'))$('#cf').onclick=()=>rpc('confirm_separation',{p_sep:sp.id});
-  if($('#pa'))$('#pa').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:true});if($('#pj'))$('#pj').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:false});
-  if($('#sold'))$('#sold').onclick=()=>{const u=$('#ct').value.trim();if(!/^https?:\/\/.+/i.test(u)){$('#me').textContent='Pega el enlace (http/https) del archivo del contrato.';return}rpc('mark_sold',{p_lot:l.id,p_url:u})};
-  document.querySelectorAll('.dimg').forEach(async im=>{const{data}=await sb.storage.from(im.dataset.b).createSignedUrl(im.dataset.p,3600);if(data)im.src=data.signedUrl});
-  if($('#cf1'))bindForm(l);
-}
 async function vPerms(){
   const{data}=await sb.from('profiles').select('*').eq('role','administrativo').order('name'),U=data||[];
   const P=[['edit_lots','Editar datos de lotes','Nombre, tamaño, precios y monto de separación; asociar lotes al plano.'],['mark_sold','Marcar como Vendido','Pasar un lote de Separado a Vendido (exige el enlace del contrato).'],['approve_price','Aprobar cambios de precio','Responder las solicitudes de cambio de precio de los vendedores.']];
@@ -466,29 +373,21 @@ async function openAccess(id){
   modal(`<h1>Acceso de ${esc(u.name)}</h1><label style="font-size:14px;color:var(--tx)"><input type="radio" name="am" value="all" ${u.access_all?'checked':''}> Todos los planos</label><label style="font-size:14px;color:var(--tx)"><input type="radio" name="am" value="sel" ${u.access_all?'':'checked'}> Seleccionar planos</label>
   <div id="al" style="margin-top:8px;${u.access_all?'opacity:.4;pointer-events:none':''}">${S.projects.map(p=>`<div style="margin:8px 0"><b>${esc(p.name)}</b>${S.plans.filter(x=>x.projectId===p.id).map(x=>`<label style="margin:3px 0;font-size:14px;color:var(--tx)"><input type="checkbox" data-pl="${x.id}" ${has.has(x.id)?'checked':''}> ${esc(x.name)}</label>`).join('')||'<div class="sub">Sin planos</div>'}</div>`).join('')}</div>
   <div class="err" id="ae"></div><button class="p" id="as1" style="width:100%;margin-top:12px">Guardar</button><button id="ac1" style="width:100%;margin-top:8px">Cancelar</button>`);
-  $('#ac1').onclick=closeM;document.querySelectorAll('[name=am]').forEach(x=>x.onchange=()=>{const a=document.querySelector('[name=am]:checked').value==='all';$('#al').style.cssText=a?'margin-top:8px;opacity:.4;pointer-events:none':'margin-top:8px'});
+  $('#ac1').onclick=()=>openUser(id);document.querySelectorAll('[name=am]').forEach(x=>x.onchange=()=>{const a=document.querySelector('[name=am]:checked').value==='all';$('#al').style.cssText=a?'margin-top:8px;opacity:.4;pointer-events:none':'margin-top:8px'});
   $('#as1').onclick=async()=>{const all=document.querySelector('[name=am]:checked').value==='all',sel=[...document.querySelectorAll('[data-pl]:checked')].map(x=>x.dataset.pl);
     let x=await sb.from('profiles').update({access_all:all}).eq('id',id);if(!x.error)x=await sb.from('user_plans').delete().eq('user_id',id);
     if(!x.error&&!all&&sel.length)x=await sb.from('user_plans').insert(sel.map(p=>({user_id:id,plan_id:p})));
-    if(x.error){$('#ae').textContent=x.error.message;return}closeM();vUsers()};
+    if(x.error){$('#ae').textContent=x.error.message;return}openUser(id)};
 }
 
 /* ===== v10: panel, historial, avisos, marca, ventanas seguras, contraseña visible ===== */
 let MO=0,VW=0;
-function modal(h){$('#modal').innerHTML=`<div class="ov"><div class="md"><button class="x" id="mx" aria-label="Cerrar">✕</button>${h}</div></div>`;$('#mx').onclick=()=>closeM();if(!MO){history.pushState({m:1},'');MO=1}}
-function closeM(pop){$('#modal').innerHTML='';clearInterval(S.hb);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}if(MO){MO=0;if(pop!==true)history.back()}}
 function showImg(u){$('#viewer').innerHTML=`<button class="x" id="vx">✕</button><img src="${u}" alt="">`;$('#viewer').style.display='flex';$('#vx').onclick=()=>closeV();if(!VW){history.pushState({v:1},'');VW=1}}
 function closeV(pop){$('#viewer').style.display='none';$('#viewer').innerHTML='';if(VW){VW=0;if(pop!==true)history.back()}}
-addEventListener('popstate',()=>{if(VW)closeV(true);else if(MO)closeM(true)});
+addEventListener('popstate',()=>{if(S.force){history.pushState({m:1},'');return}if(VW)closeV(true);else if(MO)closeM(true)});
 function pwField(id,l){return `<label>${l}</label><div class="pw"><input id="${id}" type="password" data-pw autocomplete="off"><button type="button" class="eye" data-eye="${id}" aria-label="Mantén presionado para ver" oncontextmenu="return false">👁</button></div>`}
 document.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-eye]');if(b){e.preventDefault();const i=$('#'+b.dataset.eye);if(i)i.type='text'}});
 ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>document.querySelectorAll('[data-pw]').forEach(i=>i.type='password'),true));
-function formModal(t,fs,cb,ok='Aceptar'){
-  modal(`<h1>${t}</h1>${fs.map(f=>f.pw?pwField(f.id,f.label):`<label>${f.label}</label><input id="${f.id}" type="${f.type||'text'}" value="${esc(f.value??'')}" ${f.type==='number'?'inputmode="numeric"':''}>`).join('')}<div class="err" id="fe"></div><button class="p" id="fok" style="width:100%;margin-top:14px">${ok}</button>`);
-  const go=async()=>{const v={};fs.forEach(f=>v[f.id]=$('#'+f.id).value.trim());$('#fok').disabled=true;$('#fok').textContent='Guardando…';let e;try{e=await cb(v)}catch(x){e=x.message}
-    if(e){$('#fe').textContent=e;$('#fok').disabled=false;$('#fok').textContent=ok}else closeM()};
-  $('#fok').onclick=go;fs.forEach(f=>$('#'+f.id).onkeydown=e=>{if(e.key==='Enter')go()});
-}
 /* --- marca de la empresa --- */
 async function loadBrand(){const{data}=await sb.from('app_settings').select('*').eq('id',1).maybeSingle();
   S.brand=data?{name:data.company_name,logo:data.logo_path?sb.storage.from('marca').getPublicUrl(data.logo_path).data.publicUrl:'',color1:data.color1,color2:data.color2}:{};applyBrand()}
@@ -527,15 +426,16 @@ function vPanel(){
   const rk=Object.entries(by).sort((a,b)=>b[1].n-a[1].n),mx=rk.length?rk[0][1].n:1,staff=S.me.role!=='vendedor',att=[];
   sp.filter(s=>s.status==='pendiente').forEach(s=>att.push([`Separación pendiente de confirmar · ${esc(s.lotName)}`,`${esc(s.sellerName)}${s.priceStatus==='pendiente'?' · cambio de precio por resolver':''}`,s.lotId]));
   sp.filter(s=>s.status==='confirmada'&&s.expiresAt&&s.expiresAt-Date.now()<3*864e5).forEach(s=>att.push([`Separado por vencer · ${esc(s.lotName)}`,`Vence ${dt(s.expiresAt)}`,s.lotId]));
+  (S.inst||[]).filter(i=>i.projectId===S.pid&&i.status==='pendiente'&&dueIn(i)<=3).forEach(i=>{const x=S.seps.find(z=>z.id===i.separationId);att.push([`Cuota ${i.n} ${dueIn(i)<0?'vencida':'por vencer'} · ${esc(x?x.lotName:'')}`,`${money(i.amount)} · vence ${fd(i.dueDate)}`,null])});
   const seg=(k,col)=>`<span style="width:${n?c[k]/n*100:0}%;background:var(--${col})" title="${ST[k][0]}: ${c[k]}"></span>`;
   $('#v').innerHTML=`<div class="kpis">${[['🏷️','Lotes',n],['🟢','Libres',c.libre],['🟡','En separación',c.sep],['🔴','Separados',c.separado],['🔵','Vendidos',c.vendido],['💰','Recaudado en separaciones',money(rec)],['📈','Avance',n?Math.round((c.separado+c.vendido)/n*100)+'%':'0%']].map(k=>`<div class="kpi"><div class="sub">${k[0]} ${k[1]}</div><div class="v">${k[2]}</div></div>`).join('')}</div>
   <div class="card" style="margin-top:12px"><h2>Estado de los lotes</h2><div class="sbar">${seg('libre','g')}${seg('sep','y')}${seg('separado','r')}${seg('vendido','b')}</div></div>
-  ${staff?`<div class="card" style="margin-top:12px"><h2>Requiere atención</h2>${att.length?att.map(a=>`<div class="att"><div><b>${a[0]}</b><div class="sub">${a[1]}</div></div><button data-o="${a[2]}">Abrir</button></div>`).join(''):'<p class="mu" style="margin:0">Todo al día ✔</p>'}</div>`:''}
+  ${staff?`<div class="card" style="margin-top:12px"><h2>Requiere atención</h2>${att.length?att.map(a=>`<div class="att"><div><b>${a[0]}</b><div class="sub">${a[1]}</div></div>${a[2]?`<button data-o="${a[2]}">Abrir</button>`:'<button data-ct="1">Ver cuotas</button>'}</div>`).join(''):'<p class="mu" style="margin:0">Todo al día ✔</p>'}</div>`:''}
   <div class="card" style="margin-top:12px"><h2>${staff?'Ranking de vendedores':'Mis separaciones'}</h2>${rk.length?rk.map(([k,o])=>`<div class="hb"><span>${esc(k)}</span><i style="width:${o.n/mx*100}%"></i><b>${o.n}${o.v?` · ${o.v} vend.`:''}</b></div>`).join(''):'<p class="mu" style="margin:0">Sin separaciones todavía.</p>'}</div>`;
-  document.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>openLot(b.dataset.o));
+  document.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>openLot(b.dataset.o));document.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{S.tab='cuotas';render()});
 }
 /* --- historial --- */
-const ENT={lots:'lote',separations:'separación',projects:'proyecto',plans:'plano',profiles:'usuario'},ACT={INSERT:'Creó',UPDATE:'Modificó',DELETE:'Eliminó'};
+const ENT={lots:'lote',separations:'separación',projects:'proyecto',plans:'plano',profiles:'usuario',installments:'cuota'},ACT={INSERT:'Creó',UPDATE:'Modificó',DELETE:'Eliminó'};
 const KEYS={status:'estado',name:'nombre',area:'tamaño',deposit:'monto separación',price_cash:'precio contado',price_fin:'precio cuotas',active:'activo',perms:'permisos',access_all:'acceso total',price_status:'estado del precio',sep_days:'días separado',share_active:'enlace externo',role:'rol',confirmed_name:'confirmado por',contract_url:'contrato',plan_id:'plano',phone:'celular'};
 const fv=v=>v===null||v===undefined||v===''?'—':typeof v==='object'?JSON.stringify(v):String(v).slice(0,40);
 const sumDetail=a=>a.action==='UPDATE'?Object.entries(a.detail||{}).filter(([k])=>!['number','confirmed_by','confirmed_at','expires_at','sold_at','lot_number'].includes(k)).slice(0,4).map(([k,v])=>`· ${KEYS[k]||k}: ${fv(v.de)} → ${fv(v.a)}`).join(' '):'';
@@ -543,7 +443,7 @@ async function vHist(){
   const{data,error}=await sb.from('audit_log').select('*').order('at',{ascending:false}).limit(400),A=data||[];
   if(error){$('#v').innerHTML=`<div class="card err">${esc(error.message)}</div>`;return}
   $('#v').innerHTML=`<div class="card"><div class="bar"><h1>Historial de actividad</h1><div class="grp" style="margin-left:auto"><select id="hf" style="width:auto"><option value="">Todo</option>${[...new Set(A.map(a=>a.entity))].map(e=>`<option value="${e}">${ENT[e]||e}</option>`).join('')}</select><input id="hq" placeholder="Buscar…" style="width:190px"></div></div><div class="tw"><table id="ht"></table></div></div>`;
-  const draw=()=>{const f=$('#hf').value,q=$('#hq').value.toLowerCase();$('#ht').innerHTML='<tr><th>Fecha y hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr>'+A.filter(a=>(!f||a.entity===f)&&(!q||JSON.stringify([a.actor_name,a.label,a.detail]).toLowerCase().includes(q))).slice(0,300).map(a=>`<tr><td>${dt(a.at)}</td><td>${esc(a.actor_name)}</td><td>${esc(ROL[a.actor_role]||'—')}</td><td>${ACT[a.action]} ${ENT[a.entity]||a.entity}</td><td style="white-space:normal;min-width:230px"><b>${esc(a.label||'')}</b> ${esc(sumDetail(a))}</td></tr>`).join('')};
+  const draw=()=>{const f=$('#hf').value,q=$('#hq').value.toLowerCase();$('#ht').innerHTML='<tr><th>Fecha y hora</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th></tr>'+A.filter(a=>(!f||a.entity===f)&&(!q||JSON.stringify([a.actor_name,a.label,a.detail]).toLowerCase().includes(q))).slice(0,300).map(a=>`<tr><td>${dt(a.at)}</td><td>${esc(a.actor_name)}</td><td>${esc(ROL[a.actor_role]||'—')}</td><td>${actText(a)}</td><td style="white-space:normal;min-width:230px"><b>${esc(a.label||'')}</b> ${esc(sumDetail(a))}</td></tr>`).join('')};
   $('#hf').onchange=draw;$('#hq').oninput=draw;draw();
 }
 /* --- asociar lotes en orden --- */
@@ -568,15 +468,6 @@ function saveDraft(){
   },'Aceptar y guardar');
 }
 /* --- estructura: panel lateral + cabecera --- */
-function renderSide(){
-  const r=S.me.role,adm=r==='admin',B=S.brand||{},I=(t,ic,l)=>`<button class="ni ${S.tab===t?'on':''}" data-t="${t}"><span class="ic">${ic}</span>${l}</button>`;
-  let h=`<div class="co">${B.logo?`<img src="${B.logo}" alt="">`:''}<div><b>${esc(B.name||'Mi empresa')}</b><div class="sub">${ROL[r]}</div></div></div>`;
-  if(r!=='externo'){h+='<div class="nt">Operación</div>'+I('panel','📊','Panel')+I('plano','🗺️','Plano')+I('regs','📋',r==='vendedor'?'Mis separaciones':'Registros');
-    if(adm||canEditLots())h+='<div class="nt">Gestión</div>'+I('lotes','🏷️','Lotes');
-    if(adm)h+=I('users','👥','Usuarios')+I('perms','🛡️','Permisos')+I('share','🔗','Enlaces externos')+I('hist','🕘','Historial')+I('brand','🎨','Empresa')}
-  $('#side').innerHTML=h;
-  document.querySelectorAll('#side [data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;document.body.classList.remove('nav-open');render()});
-}
 function render(){
   if(!S.me)return;const r=S.me.role,adm=r==='admin',ext=r==='externo';
   document.body.classList.toggle('no-side',ext);
@@ -584,17 +475,17 @@ function render(){
   $('#who').textContent=S.me.name+' · '+ROL[r];
   if(S.ext&&!S.projects.length){$('#hr').innerHTML='';$('#side').innerHTML='';$('#app').innerHTML='<div class="card" style="text-align:center">🔒 Este enlace informativo no está disponible o fue desactivado.</div>';return}
   const un=(S.notes||[]).filter(n=>!n.read).length;
-  $('#hr').innerHTML=ext?'<button id="lg">Ingresar</button>':`<button id="bl" class="bell" title="Avisos">🔔${un?`<span class="cnt">${un}</span>`:''}</button><button id="pw" title="Cambiar mi contraseña">🔑</button><button id="out">Salir</button>`;
+  $('#hr').innerHTML=ext?'<button id="lg">Ingresar</button>':`<button id="bl" class="bell" title="Avisos">🔔${un?`<span class="cnt">${un}</span>`:''}</button><button id="th" title="Tema">🌓</button><button id="pw" title="Cambiar mi contraseña">🔑</button><button id="out">Salir</button>`;
   $('#tg').onclick=()=>{if(matchMedia('(max-width:900px)').matches)document.body.classList.toggle('nav-open');else{const o=document.body.classList.toggle('nav-off');LS.set('nav_off',o?'1':'0')}};
   $('#bd').onclick=()=>document.body.classList.remove('nav-open');
   if($('#lg'))$('#lg').onclick=()=>{location.hash='';location.reload()};
-  if($('#bl'))$('#bl').onclick=openBell;
+  if($('#bl'))$('#bl').onclick=openBell;if($('#th'))$('#th').onclick=themeModal;
   if($('#pw'))$('#pw').onclick=()=>formModal('Cambiar mi contraseña',[{id:'fp1',label:'Nueva contraseña (mínimo 6)',pw:1},{id:'fp2',label:'Repetir contraseña',pw:1}],async v=>{if(v.fp1.length<6)return'Mínimo 6 caracteres';if(v.fp1!==v.fp2)return'Las contraseñas no coinciden';const{error}=await sb.auth.updateUser({password:v.fp1});return error?error.message:null});
   if($('#out'))$('#out').onclick=async()=>{await sb.auth.signOut();location.reload()};
-  const allowed=ext?['plano']:['panel','plano','regs'].concat(adm?['lotes','users','perms','share','hist','brand']:canEditLots()?['lotes']:[]);
+  const allowed=ext?['plano']:['panel','plano','regs','cuotas'].concat(adm?['lotes','users','share','hist','ocr','brand']:canEditLots()?['lotes']:[]);
   if(!allowed.includes(S.tab))S.tab='plano';
   renderSide();
-  const cpj=curP(),showP=!ext&&['panel','plano','regs','lotes'].includes(S.tab);
+  const cpj=curP(),showP=!ext&&['panel','plano','regs','cuotas','lotes'].includes(S.tab);
   const pb=ext?`<div class="bar"><h1>${esc(cpj.name)}</h1></div>`:showP?`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="bpn">＋ Proyecto</button>'+(cpj?`<button id="bpy">⏱ ${cpj.sepDays?cpj.sepDays+' días':'Sin límite'}</button><button id="bpr">Renombrar</button><button id="bpd" class="dg">Eliminar</button>`:'')+'</div>':''}</div>`:'';
   $('#app').innerHTML=pb+'<div id="v"></div>';
   const reload=()=>{S.draft=null;S.view=null;S.planId=null;load()};
@@ -603,8 +494,248 @@ function render(){
   if($('#bpr'))$('#bpr').onclick=()=>formModal('Renombrar proyecto',[{id:'fnm',label:'Nombre del proyecto',value:cpj.name}],async v=>{if(!v.fnm)return'Escribe un nombre';const{error}=await sb.from('projects').update({name:v.fnm}).eq('id',S.pid);if(error)return error.message;load()});
   if($('#bpy'))$('#bpy').onclick=()=>formModal('Días en estado «Separado»',[{id:'fdy',label:'Días antes de liberar el lote (vacío = sin límite)',type:'number',value:cpj.sepDays||''}],async v=>{const n=v.fdy===''?null:parseInt(v.fdy);if(n!==null&&!(n>0))return'Número inválido';const{error}=await sb.from('projects').update({sep_days:n}).eq('id',S.pid);if(error)return error.message;load()});
   if($('#bpd'))$('#bpd').onclick=async()=>{if(confirm(`¿Eliminar «${cpj.name}» con sus planos, lotes y registros? No se puede deshacer.`)){const{error}=await sb.from('projects').delete().eq('id',S.pid);if(error)alert(error.message);S.pid=null;reload()}};
-  ({panel:vPanel,plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,perms:vPerms,share:vShare,hist:vHist,brand:vBrand})[S.tab]();
+  ({panel:vPanel,plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,share:vShare,hist:vHist,brand:vBrand,cuotas:vCuotas,ocr:vOcr})[S.tab]();
 }
+
+/* ===== v11: cuotas, temporizador, usuarios, modelos de lectura, tema, asociación rápida ===== */
+const mInst=r=>({id:r.id,separationId:r.separation_id,projectId:r.project_id,lotId:r.lot_id,n:r.n,amount:+r.amount,dueDate:r.due_date,status:r.status,paidAt:r.paid_at,receiptUrl:r.receipt_url,invoiceUrl:r.invoice_url,paidBy:r.paid_by_name});
+const td=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const fd=d=>d?String(d).split('-').reverse().join('/'):'';
+const dueIn=i=>Math.round((new Date(i.dueDate+'T00:00')-new Date(td()+'T00:00'))/864e5);
+const iState=i=>i.status==='pagada'?['Pagada','bg-g']:dueIn(i)<0?['Vencida','bg-r']:dueIn(i)<=3?['Por vencer','bg-y y']:['Pendiente','bg-n'];
+const OCRF={dni:[['first','Nombres'],['last','Apellidos'],['dni','N° de DNI']],recibo:[['op','N° de operación'],['date','Fecha de operación']]};
+const PERMS={administrativo:[['edit_lots','Editar datos de lotes','Nombre, tamaño, precios y monto de separación; asociar lotes al plano.'],['mark_sold','Confirmar la venta (Vendido)','Pasar un lote de Separado a Vendido (exige el enlace del contrato).'],['approve_price','Aprobar cambios de precio','Responder las solicitudes de cambio de precio de los vendedores.'],['manage_installments','Gestionar cuotas y pagos','Generar cronogramas y registrar pagos de cuotas.']],vendedor:[]};
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3400)}
+/* --- tema --- */
+function applyTheme(){const t=LS.get('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme}
+function themeModal(){const t=LS.get('theme')||'auto';modal(`<h1>Tema</h1><div class="grp" style="margin:10px 0">${[['auto','🌓 Automático'],['light','☀️ Claro'],['dark','🌙 Oscuro']].map(([k,l])=>`<button class="${t===k?'on':''}" data-th="${k}" style="flex:1">${l}</button>`).join('')}</div><button style="width:100%" id="cl">Cerrar</button>`);document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{LS.set('theme',b.dataset.th);applyTheme();themeModal()});$('#cl').onclick=()=>closeM()}
+/* --- ventanas --- */
+function modal(h){const nx=h.includes('id="cl"')||h.includes('data-nox');$('#modal').innerHTML=`<div class="ov"><div class="md ${nx?'':'hx'}">${nx?'':'<button class="x" id="mx" aria-label="Cerrar">✕</button>'}${h}</div></div>`;if($('#mx'))$('#mx').onclick=()=>closeM();if(!MO){history.pushState({m:1},'');MO=1}}
+function closeM(pop){$('#modal').innerHTML='';clearInterval(S.hb);clearInterval(S.tm);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}if(MO){MO=0;if(pop!==true)history.back()}}
+function formModal(t,fs,cb,ok='Aceptar'){
+  modal(`<h1>${t}</h1>${fs.map(f=>f.pw?pwField(f.id,f.label):`<label>${f.label}</label>${f.select?`<select id="${f.id}">${f.select.map(([v,x])=>`<option value="${v}" ${v===f.value?'selected':''}>${x}</option>`).join('')}</select>`:`<input id="${f.id}" type="${f.type||'text'}" value="${esc(f.value??'')}" ${f.type==='number'?'inputmode="numeric"':''}>`}`+(f.hint?`<div class="sub">${f.hint}</div>`:'')).join('')}<div class="err" id="fe"></div><button class="p" id="fok" style="width:100%;margin-top:14px">${ok}</button>`);
+  const go=async()=>{const v={};fs.forEach(f=>v[f.id]=$('#'+f.id).value.trim());$('#fok').disabled=true;$('#fok').textContent='Guardando…';let e;try{e=await cb(v)}catch(x){e=x.message}
+    if(e){$('#fe').textContent=e;$('#fok').disabled=false;$('#fok').textContent=ok}else closeM()};
+  $('#fok').onclick=go;fs.forEach(f=>{if(!f.select)$('#'+f.id).onkeydown=e=>{if(e.key==='Enter')go()}});
+}
+/* --- sesión --- */
+function loginView(msg){
+  $('#who').textContent='';$('#hr').innerHTML='';
+  $('#app').innerHTML=`<div class="card login"><img src="logo.png" alt=""><h1 style="margin:8px 0 2px">Separador de Lotes</h1><p class="sub">Inicia sesión para continuar</p><label>DNI (administrador: admin)</label><input id="ld" autocomplete="username">${pwField('lp','Contraseña')}<div class="err" id="le">${esc(msg||'')}</div><button class="p" style="width:100%;margin-top:12px" id="lb">Entrar</button><p style="margin:14px 0 0"><a href="#" id="lf">¿Olvidaste tu contraseña?</a></p></div>`;
+  const go=async()=>{$('#lb').disabled=true;const{data,error}=await sb.functions.invoke('auth-gate',{body:{action:'login',dni:$('#ld').value,password:$('#lp').value}});
+    if(error||!data||!data.access_token){$('#le').textContent='DNI o contraseña incorrectos.';$('#lb').disabled=false;return}
+    const r=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});if(r.error){$('#le').textContent=r.error.message;$('#lb').disabled=false;return}await enter()};
+  $('#lb').onclick=go;$('#lp').onkeydown=e=>{if(e.key==='Enter')go()};
+  $('#lf').onclick=e=>{e.preventDefault();formModal('Recuperar contraseña',[{id:'fdn',label:'Tu DNI'}],async v=>{if(!v.fdn)return'Escribe tu DNI';await sb.functions.invoke('auth-gate',{body:{action:'forgot',dni:v.fdn,redirect:location.origin+location.pathname}});alert('Si el usuario tiene un correo registrado, enviamos un enlace para crear una nueva contraseña. Revisa tu bandeja de entrada y el correo no deseado.')},'Enviar enlace')};
+}
+function forcePw(){
+  S.force=true;modal(`<i data-nox hidden></i><h1>Crea tu nueva contraseña</h1><p class="sub">Por seguridad debes cambiar la contraseña antes de continuar.</p>${pwField('fp1','Nueva contraseña (mínimo 6)')}${pwField('fp2','Repetir contraseña')}<div class="err" id="fe"></div><button class="p" id="fok" style="width:100%;margin-top:14px">Guardar y continuar</button>`);
+  $('#fok').onclick=async()=>{const a=$('#fp1').value;if(a.length<6){$('#fe').textContent='Mínimo 6 caracteres';return}if(a!==$('#fp2').value){$('#fe').textContent='Las contraseñas no coinciden';return}
+    $('#fok').disabled=true;const{error}=await sb.auth.updateUser({password:a});if(error){$('#fe').textContent=error.message;$('#fok').disabled=false;return}
+    await sb.rpc('password_changed');S.force=false;S.recovery=false;closeM()};
+}
+/* --- formulario de separación (con temporizador) --- */
+const sepForm2=()=>`<i data-nox hidden></i><div class="note" style="margin-top:0">⏱ Tiempo para registrar: <b id="tmr">10:00</b> · si se agota, el lote se libera y se descarta todo lo ingresado.</div>
+<h3 class="sec">1 · Documento del cliente</h3>${fileField('df','Foto DNI (Anverso)')}${fileField('db','Foto DNI (Reverso)')}
+<div class="row"><div><label>Nombres</label><input id="cf1"></div><div><label>Apellidos</label><input id="cl1"></div><div><label>N° de DNI</label><input id="cd" inputmode="numeric" maxlength="12"></div></div>
+<h3 class="sec">2 · Financiamiento</h3><div class="row"><div><label>Tipo de financiamiento</label><select id="ft"><option>Al Contado</option><option>En cuotas</option></select></div><div><label>Cuotas</label><input id="cu" value="Sin Cuotas" disabled></div></div>
+<div class="kv"><div><b id="plb">Precio (al contado)</b><span id="plv"></span></div><div><b>Cambio de precio</b><label style="margin:0;font-weight:600;color:var(--tx)"><input type="checkbox" id="pc"> Solicitar cambio</label></div></div>
+<div class="row" id="prq" style="display:none"><div><label>Precio solicitado (S/.)</label><input id="sf_pr" type="number" inputmode="decimal" step="any"></div><div><label>Motivo (opcional)</label><input id="sf_pn"></div></div>
+<h3 class="sec">3 · Pago de la separación</h3>${fileField('rc','Foto del recibo de separación')}<div class="row"><div><label>N° de operación</label><input id="on"></div><div><label>Fecha de operación</label><input id="od" type="date"></div></div>
+<div class="err" id="me2"></div><div class="grp" style="margin-top:14px"><button class="dg" id="anl" style="flex:1">Anular</button><button class="p" id="reg" style="flex:2" disabled>Registrar</button></div>`;
+async function readDoc(kind,blob){
+  let d=null;try{d=await readByModels(kind,blob)}catch(e){}
+  if(d&&(kind==='dni'?(d.first||d.last||d.dni):(d.op||d.date)))return d;
+  const t=await ocr(blob);return kind==='dni'?parseDni(t):parseReceipt(t);
+}
+function bindForm(l){
+  const F={},q=i=>$('#'+i),price=()=>q('ft').value==='En cuotas'?l.priceFin:l.priceCash;
+  const chk=()=>{const c=q('ft').value==='En cuotas',cu=q('cu'),rq=q('pc').checked;cu.disabled=!c;
+    if(!c){cu.type='text';cu.value='Sin Cuotas'}else if(cu.type!=='number'){cu.type='number';cu.value='';cu.min=2;cu.step=1}
+    q('plb').textContent=c?'Precio (en cuotas)':'Precio (al contado)';q('plv').textContent=money(price());q('prq').style.display=rq?'':'none';
+    q('reg').disabled=!(q('cf1').value.trim()&&q('cl1').value.trim()&&/^\d{8,12}$/.test(q('cd').value.trim())&&F.df&&F.db&&F.rc&&q('on').value.trim()&&q('od').value&&(!c||(Number.isInteger(+cu.value)&&+cu.value>=2))&&(!rq||(pos(q('sf_pr').value)&&+q('sf_pr').value!==price())))};
+  document.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const id=inp.dataset.f,m=q('ocr_'+id);m.textContent='Procesando imagen…';
+    try{const{blob}=await shrink(f,1800,.9);F[id]=blob;const p=q('pv_'+id);p.src=URL.createObjectURL(blob);p.style.display='block';chk();
+      if(id==='df'||id==='rc'){m.textContent='Leyendo datos de la imagen…';
+        if(id==='df'){const d=await readDoc('dni',blob);if(d.first)q('cf1').value=d.first;if(d.last)q('cl1').value=d.last;if(d.dni)q('cd').value=d.dni;m.textContent=(d.first||d.last||d.dni)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el documento; completa los datos.'}
+        else{const d=await readDoc('recibo',blob);if(d.op)q('on').value=d.op;if(d.date)q('od').value=d.date;m.textContent=(d.op||d.date)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el recibo; completa los datos.'}
+      }else m.textContent='';chk()}catch(e){m.textContent='No se pudo leer la imagen automáticamente; completa los datos.';chk()}});
+  ['cf1','cl1','cd','ft','cu','sf_pr','sf_pn','on','od'].forEach(i=>q(i).oninput=chk);q('pc').onchange=chk;
+  q('anl').onclick=()=>closeM();
+  const tick=()=>{const rem=S.lkUntil-Date.now();if(rem<=0){closeM();toast('⏱ Tiempo agotado: el lote fue liberado y no se guardó nada.');load();return}const t=q('tmr');if(t){t.textContent=`${Math.floor(rem/60000)}:${String(Math.floor(rem%60000/1000)).padStart(2,'0')}`;t.style.color=rem<60000?'var(--r)':''}};
+  clearInterval(S.tm);S.tm=setInterval(tick,1000);tick();
+  q('reg').onclick=async()=>{const b=q('reg'),er=q('me2'),c=q('ft').value==='En cuotas',up=[];b.disabled=true;b.textContent='Guardando…';
+    try{const base=`${S.me.id}/${Date.now()}`,P={df:base+'-dni-anverso.jpg',db:base+'-dni-reverso.jpg',rc:base+'-recibo.jpg'};
+      for(const k of['df','db','rc']){const bk=k==='rc'?'recibos':'documentos',x=await sb.storage.from(bk).upload(P[k],F[k],{contentType:'image/jpeg'});if(x.error)throw x.error;up.push([bk,P[k]])}
+      const x=await sb.rpc('register_separation',{p_lot:l.id,p_first:q('cf1').value.trim(),p_last:q('cl1').value.trim(),p_dni:q('cd').value.trim(),p_fin_type:q('ft').value,p_installments:c?+q('cu').value:null,p_receipt:P.rc,p_dni_front:P.df,p_dni_back:P.db,p_op_number:q('on').value.trim(),p_op_date:q('od').value,p_price_requested:q('pc').checked?+q('sf_pr').value:null,p_price_note:q('sf_pn').value.trim()||null});
+      if(x.error){for(const[bk,pa]of up)await sb.storage.from(bk).remove([pa]);throw x.error}
+      S.lk=null;closeM();load();toast('✔ Separación registrada');
+    }catch(e){er.textContent=e.message||'Error al registrar.';b.disabled=false;b.textContent='Registrar'}};
+  chk();
+}
+async function openLot(id){
+  const l=S.lots.find(x=>x.id===id);if(!l)return;
+  if(S.quick&&!l.name&&canEditLots())return quickAssign(l);
+  if(!l.name)return openFree(l);
+  const r=S.me.role,st=ST[l.status],sp=lastSep(id),si=S.sepInfo[id],lk=S.locks[id];let act='',note='',form=false;
+  if(r==='vendedor'&&l.status==='libre'){
+    if(!complete(l))note='<div class="note" style="border-color:var(--r)">⚠️ <b>Datos incompletos:</b> este lote aún no está disponible para separación.</div>';
+    else{const{data,error}=await sb.rpc('lock_lot',{p_lot:id});if(error)note=`<div class="note" style="border-color:var(--y)">🔒 ${esc(error.message)}</div>`;
+      else{S.lk=id;S.lkUntil=new Date(data);form=true;act=sepForm2()}}
+  }else if(lk&&l.status==='libre'&&r!=='externo')note=`<div class="note" style="border-color:var(--y)">🔒 En proceso de separación por <b>${esc(lk.user_name)}</b></div>`;
+  if(si&&l.status!=='libre'&&r!=='externo'&&!(sp&&sp.contractUrl))note+=`<div class="sub" style="margin:8px 0">Separado por <b>${esc(si.seller_name)}</b> · ${dt(si.sep_at)}</div>`;
+  const pp=sp&&sp.priceStatus==='pendiente';
+  if(sp&&r!=='externo'&&l.status!=='libre'){
+    act+=cli(sp)+`<div class="kv"><div><b>Precio (${esc(sp.finType)})</b>${money(sp.priceFinal)}${sp.priceStatus==='aprobado'?' · aprobado':''}</div><div><b>N° de operación</b>${esc(sp.opNumber)}</div><div><b>Fecha de operación</b>${esc(sp.opDate)}</div></div>`;
+    if(sp.priceStatus!=='ninguno')act+=`<div class="note">💲 Precio solicitado: <b>${money(sp.priceRequested)}</b> (lista ${money(sp.priceListed)}) · <b>${esc(sp.priceStatus)}</b>${sp.priceNote?' · '+esc(sp.priceNote):''}</div>`;
+    if(l.status==='separado'&&sp.expiresAt)act+=`<div class="sub">Vence el ${dt(sp.expiresAt)}</div>`;
+    if(sp.contractUrl)act+=`<div class="sub">Vendedor: <b>${esc(sp.sellerName)}</b> · Venta confirmada por <b>${esc(sp.soldByName)}</b> · ${dt(sp.soldAt)} · <a href="${esc(sp.contractUrl)}" target="_blank" rel="noopener">Contrato</a></div>`;
+    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="showImg(this.src)">`).join('')}</div>`;
+    if(pp&&r!=='vendedor'&&!hasPerm('approve_price'))act+='<div class="note">⏳ Un usuario con permiso debe aprobar o rechazar primero el cambio de precio.</div>';
+    if(hasPerm('approve_price')&&pp)act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
+    if(r==='administrativo'&&l.status==='sep')act+=`<button class="ok" id="cf" ${pp?'disabled':''} style="width:100%;margin-top:12px">Confirmar separación</button>`+(pp?'<div class="sub">Se habilita cuando el precio sea aprobado o rechazado.</div>':'');
+    if(hasPerm('mark_sold')&&l.status==='separado')act+='<label>Enlace del contrato (obligatorio)</label><input id="ct" placeholder="https://…"><button class="p" id="sold" style="width:100%;margin-top:8px">Confirmar venta (Vendido)</button>';
+  }
+  if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
+  if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
+  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
+  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div></div>${note}${act}<div class="err" id="me"></div>${form?'':'<button style="width:100%;margin-top:10px" id="cl">Cerrar</button>'}`);
+  const rpc=async(fnm,args)=>{const{error}=await sb.rpc(fnm,args);if(error){$('#me').textContent=error.message;return false}closeM();load();return true};
+  if($('#cl'))$('#cl').onclick=()=>closeM();
+  if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
+  if($('#ua'))$('#ua').onclick=()=>rpc('unassign_lot',{p_lot:l.id});
+  if($('#lb1'))$('#lb1').onclick=()=>{if(confirm('¿Liberar este lote y anular su separación?'))rpc('release_lot',{p_lot:l.id})};
+  if($('#cf'))$('#cf').onclick=()=>rpc('confirm_separation',{p_sep:sp.id});
+  if($('#pa'))$('#pa').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:true});if($('#pj'))$('#pj').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:false});
+  if($('#sold'))$('#sold').onclick=()=>{const u=$('#ct').value.trim();if(!/^https?:\/\/.+/i.test(u)){$('#me').textContent='Pega el enlace (http/https) del archivo del contrato.';return}rpc('mark_sold',{p_lot:l.id,p_url:u})};
+  document.querySelectorAll('.dimg').forEach(async im=>{const{data}=await sb.storage.from(im.dataset.b).createSignedUrl(im.dataset.p,3600);if(data)im.src=data.signedUrl});
+  if(form)bindForm(l);
+}
+/* --- asociar en orden (modo activo) --- */
+async function quickAssign(l){
+  if(S.qb)return;S.qb=1;const rec=S.lots.filter(x=>x.name&&!x.poly).sort((a,b)=>nat(a.name,b.name))[0];
+  if(!rec){S.qb=0;S.quick=false;toast('No quedan lotes registrados sin asociar. Modo desactivado.');render();return}
+  const{error}=await sb.rpc('assign_lot',{p_poly:l.id,p_record:rec.id});S.qb=0;if(error)return alert(error.message);toast(`✔ ${rec.name} asociado`);load();
+}
+function quickToggle(){
+  if(S.quick){S.quick=false;render();return}
+  modal(`<h1>⚡ Asociar en orden</h1><p>Con este modo activo, <b>cada lote sin asociar que toques en el plano se asocia automáticamente</b> con el siguiente registro de la lista de lotes (en orden: A-01, A-02, A-03…).</p><p>Ejemplo: tocas un lote → se asocia al <b>Lote 1</b>; tocas otro lote → se asocia al <b>Lote 2</b>, y así sucesivamente, sin abrir ventanas ni listas.</p><p class="sub">Para corregir uno, ábrelo y usa «Quitar del plano». Pulsa de nuevo el botón para desactivar el modo.</p><button class="p" id="qg" style="width:100%">Entendido, activar</button><button id="cl" style="width:100%;margin-top:8px">Cancelar</button>`);
+  $('#qg').onclick=()=>{S.quick=true;closeM();render()};$('#cl').onclick=()=>closeM();
+}
+/* --- usuarios --- */
+async function vUsers(){
+  const{data}=await sb.from('profiles').select('*').order('created_at'),U=data||[];
+  $('#v').innerHTML=`<div class="card"><div class="bar" style="margin:0 0 10px"><h1>Usuarios</h1><button class="p" id="nu" style="margin-left:auto">＋ Nuevo Usuario</button></div><div class="tw"><table><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Rol</th><th>Correo</th><th></th></tr>${U.map(u=>`<tr><td>${esc(u.dni)}</td><td><b>${esc(u.name)}</b></td><td>${esc(u.phone||'')}</td><td>${ROL[u.role]}</td><td>${esc(u.email||'—')}</td><td><button data-u="${u.id}">Ver detalles</button></td></tr>`).join('')}</table></div></div>`;
+  $('#nu').onclick=newUser;document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>openUser(b.dataset.u));
+}
+function newUser(){
+  formModal('Nuevo usuario',[{id:'nd',label:'DNI *'},{id:'nn',label:'Nombre completo *'},{id:'np',label:'Celular'},{id:'ne',label:'Correo electrónico (para recuperar la contraseña)',type:'email'},{id:'nr',label:'Rol *',select:[['vendedor','Vendedor'],['administrativo','Administrativo']]},{id:'nk',label:'Contraseña inicial * (mínimo 6)',pw:1,hint:'Solo sirve para el primer ingreso: el sistema le pedirá cambiarla.'}],async v=>{
+    if(!v.nd||!v.nn||!v.nk)return'Completa DNI, nombre y contraseña.';
+    try{await fn({action:'create',dni:v.nd,name:v.nn,phone:v.np,email:v.ne,role:v.nr,password:v.nk})}catch(e){return e.message}
+    vUsers()},'Crear usuario');
+}
+async function openUser(id){
+  const[{data:u},{data:up}]=await Promise.all([sb.from('profiles').select('*').eq('id',id).single(),sb.from('user_plans').select('plan_id').eq('user_id',id)]);if(!u)return;
+  const adm=u.role==='admin',names=(up||[]).map(x=>(S.plans.find(p=>p.id===x.plan_id)||{}).name).filter(Boolean);
+  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(u.name)}</h1><span class="badge" style="background:${u.active?'var(--g)':'#9aa4b8'}">${u.active?'Activo':'Inactivo'}</span></div>
+  <div class="kv"><div><b>DNI</b>${esc(u.dni)}</div><div><b>Celular</b>${esc(u.phone||'—')}</div><div><b>Rol</b>${ROL[u.role]}</div><div><b>Correo</b>${esc(u.email||'—')}</div></div>
+  ${adm?'':`<div class="att"><div><b>Estado</b><div class="sub">Activa o desactiva el ingreso</div></div><label class="sw"><input type="checkbox" id="stt" ${u.active?'checked':''}><span></span></label></div>
+  <div class="att"><div><b>Acceso a planos</b><div class="sub">${u.access_all?'Todos los planos':esc(names.join(', ')||'Ninguno seleccionado')}</div></div><button id="uac">Editar acceso</button></div>`}
+  <div class="grp" style="margin:14px 0 6px"><button id="ued">✏️ Editar datos</button><button id="ukk">🔑 Cambiar clave</button>${adm?'':'<button id="upm">🛡️ Permisos</button><button id="udl" class="dg">🗑 Eliminar</button>'}</div><button style="width:100%;margin-top:6px" id="cl">Cerrar</button>`);
+  $('#cl').onclick=()=>{closeM();vUsers()};
+  if($('#stt'))$('#stt').onchange=async e=>{const{error}=await sb.from('profiles').update({active:e.target.checked}).eq('id',id);if(error)alert(error.message);openUser(id)};
+  if($('#uac'))$('#uac').onclick=()=>openAccess(id);
+  $('#ued').onclick=()=>formModal('Editar datos',[{id:'en',label:'Nombre completo',value:u.name},{id:'ep',label:'Celular',value:u.phone||''},{id:'ee',label:'Correo electrónico',type:'email',value:u.email||''}].concat(adm?[]:[{id:'er',label:'Rol',value:u.role,select:[['vendedor','Vendedor'],['administrativo','Administrativo']]}]),async v=>{if(!v.en)return'El nombre es obligatorio.';try{await fn({action:'update_user',id,name:v.en,phone:v.ep,email:v.ee,role:adm?undefined:v.er})}catch(e){return e.message}openUser(id)});
+  $('#ukk').onclick=()=>formModal('Cambiar clave de '+esc(u.name),[{id:'k1',label:'Nueva contraseña (mínimo 6)',pw:1,hint:adm?'':'El usuario deberá cambiarla al ingresar.'}],async v=>{if(v.k1.length<6)return'Mínimo 6 caracteres';try{await fn({action:'set_password',id,password:v.k1})}catch(e){return e.message}toast('Contraseña actualizada')});
+  if($('#upm'))$('#upm').onclick=()=>openPerms(u);
+  if($('#udl'))$('#udl').onclick=async()=>{if(confirm('¿Eliminar a '+u.name+'? No se puede deshacer.'))try{await fn({action:'delete',id});closeM();vUsers()}catch(e){alert(e.message)}};
+}
+function openPerms(u){
+  const P=PERMS[u.role]||[];
+  modal(`<h1>Permisos de ${esc(u.name)}</h1><p class="sub">${ROL[u.role]}</p>`+(P.length?P.map(p=>`<div class="att"><div><b>${p[1]}</b><div class="sub">${p[2]}</div></div><span class="sw"><input type="checkbox" data-k="${p[0]}" ${(u.perms||[]).includes(p[0])?'checked':''}><span></span></span></div>`).join(''):'<p class="mu">Este rol no tiene permisos configurables.</p>')+'<button style="width:100%;margin-top:12px" id="cl">Cerrar</button>');
+  $('#cl').onclick=()=>openUser(u.id);
+  document.querySelectorAll('[data-k]').forEach(c=>c.onchange=async()=>{const s=new Set(u.perms||[]);c.checked?s.add(c.dataset.k):s.delete(c.dataset.k);u.perms=[...s];const{error}=await sb.from('profiles').update({perms:u.perms}).eq('id',u.id);if(error){alert(error.message);openPerms(u)}});
+}
+/* --- cuotas y cronograma --- */
+function vCuotas(){
+  const sales=S.seps.filter(s=>s.projectId===S.pid&&s.finType==='En cuotas'&&['confirmada','vendida'].includes(s.status)),mg=hasPerm('manage_installments');
+  if(!sales.length){$('#v').innerHTML='<div class="card"><h1>Cuotas y cronograma</h1><p class="mu">Aún no hay ventas en cuotas confirmadas en este proyecto.</p></div>';return}
+  $('#v').innerHTML=sales.map(s=>{const I=S.inst.filter(i=>i.separationId===s.id).sort((a,b)=>a.n-b.n),pd=I.filter(i=>i.status==='pagada'),tot=I.reduce((a,i)=>a+i.amount,0),pay=pd.reduce((a,i)=>a+i.amount,0);
+    return `<div class="card"><div class="bar" style="margin:0 0 8px"><div><h2 style="margin:0">${esc(s.lotName)} · ${esc(s.clientName)}</h2><div class="sub">Vendedor: ${esc(s.sellerName)} · ${esc(s.cuotas)} cuotas · Precio ${money(s.priceFinal)}</div></div>${I.length?`<span class="chip" style="margin-left:auto">${pd.length}/${I.length} pagadas · saldo ${money(tot-pay)}</span>`:mg?`<button class="p" style="margin-left:auto" data-g="${s.id}">Generar cronograma</button>`:'<span class="sub" style="margin-left:auto">Sin cronograma</span>'}</div>`+
+    (I.length?`<div class="tw"><table><tr><th>N° cuota</th><th>Vence</th><th>Monto</th><th>Estado</th><th>Pagada el</th><th>Recibo</th><th>Boleta</th><th></th></tr>${I.map(i=>{const e=iState(i);return `<tr><td><b>${i.n}</b></td><td>${fd(i.dueDate)}</td><td>${money(i.amount)}</td><td><span class="badge ${e[1]}">${e[0]}</span></td><td>${fd(i.paidAt)||'—'}</td><td>${i.receiptUrl?`<a href="${esc(i.receiptUrl)}" target="_blank" rel="noopener">Ver</a>`:'—'}</td><td>${i.invoiceUrl?`<a href="${esc(i.invoiceUrl)}" target="_blank" rel="noopener">Ver</a>`:'—'}</td><td>${mg?`<button data-pay="${i.id}">${i.status==='pagada'?'Editar pago':'Registrar pago'}</button>`:''}</td></tr>`}).join('')}</table></div>`:'')+'</div>'}).join('');
+  document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const s=S.seps.find(x=>x.id===b.dataset.g);
+    formModal('Generar cronograma',[{id:'g1',label:'Fecha del primer vencimiento',type:'date',hint:'Las demás cuotas vencen el mismo día de cada mes.'},{id:'g2',label:'Monto a financiar (S/.)',type:'number',value:Math.max(0,(s.priceFinal||0)-(s.amount||0)),hint:'Por defecto: precio menos el monto de separación. Puedes ajustarlo.'}],async v=>{
+      if(!v.g1||!(+v.g2>0))return'Indica la fecha y un monto válido.';const{error}=await sb.rpc('create_schedule',{p_sep:s.id,p_first:v.g1,p_total:+v.g2});if(error)return error.message;load()},'Generar')});
+  document.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{const i=S.inst.find(x=>x.id===b.dataset.pay);
+    formModal(`Pago de la cuota ${i.n}`,[{id:'p1',label:'Fecha de pago',type:'date',value:i.paidAt||td()},{id:'p2',label:'Enlace del recibo (opcional)',value:i.receiptUrl||'',hint:'Enlace donde está guardado el recibo.'},{id:'p3',label:'Enlace de la boleta (opcional)',value:i.invoiceUrl||''}],async v=>{
+      const{error}=await sb.rpc('pay_installment',{p_id:i.id,p_date:v.p1||td(),p_receipt:v.p2,p_invoice:v.p3});if(error)return error.message;load()},'Guardar pago')});
+}
+/* --- lectura de documentos con modelos --- */
+async function loadTess(){if(!window.Tesseract)await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function readByModels(kind,blob){
+  const M=(S.ocrModels||[]).filter(m=>m.kind===kind&&m.active&&m.fields.length);if(!M.length)return null;
+  await loadTess();const im=await createImageBitmap(blob),w=await Tesseract.createWorker('spa');let best=null;
+  try{for(const m of M){const out={};let sc=0;
+    for(const f of m.fields){const[x,y,rw,rh]=f.rect,c=document.createElement('canvas'),k=Math.max(1,160/(rh*im.height));c.width=Math.max(8,Math.round(rw*im.width*k));c.height=Math.max(8,Math.round(rh*im.height*k));
+      c.getContext('2d').drawImage(im,x*im.width,y*im.height,rw*im.width,rh*im.height,0,0,c.width,c.height);
+      await w.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:['dni','op','date'].includes(f.key)?'0123456789/-. ':''});
+      const t=(await w.recognize(c)).data.text.trim().replace(/\s+/g,' ');let v=t;
+      if(f.key==='dni'){v=(t.replace(/\s/g,'').match(/\d{8}/)||[''])[0];if(v)sc+=3}
+      else if(f.key==='date'){v=parseReceipt(t).date;if(v)sc+=2}
+      else if(f.key==='op'){v=t.replace(/[^A-Za-z0-9]/g,'');if(v.length>=5)sc+=2}
+      else{v=t.toUpperCase().replace(/[^A-ZÁÉÍÓÚÑ ]/g,'').replace(/\s+/g,' ').trim();if(v.length>=3)sc+=1}
+      out[f.key]=v||''}
+    if(!best||sc>best.sc)best={sc,out}}}finally{await w.terminate()}
+  return best&&best.sc>0?best.out:null;
+}
+function vOcr(){
+  const M=S.ocrModels||[];
+  $('#v').innerHTML=`<div class="card"><div class="bar" style="margin:0 0 6px"><h1>Lectura de documentos</h1><button class="p" id="nm" style="margin-left:auto">＋ Nuevo modelo</button></div><p class="sub">Sube un documento de ejemplo y marca dónde está cada dato. Al leer las fotos de los vendedores, la app prueba los modelos activos de ese tipo y usa el que mejor coincide; si ninguno funciona, usa la lectura general. Puedes tener varios modelos por tipo (DNI azul, DNI electrónico, Yape, BCP…).</p>${M.length?`<div class="tw"><table><tr><th>Tipo</th><th>Modelo</th><th>Datos marcados</th><th>Activo</th><th></th></tr>${M.map(m=>`<tr><td>${m.kind==='dni'?'DNI (anverso)':'Recibo'}</td><td><b>${esc(m.name)}</b></td><td style="white-space:normal">${m.fields.map(f=>(OCRF[m.kind].find(x=>x[0]===f.key)||[0,f.key])[1]).join(', ')}</td><td><label class="sw"><input type="checkbox" data-oa="${m.id}" ${m.active?'checked':''}><span></span></label></td><td><button class="dg" data-ox="${m.id}">Eliminar</button></td></tr>`).join('')}</table></div>`:'<p class="mu">Aún no hay modelos: se usa la lectura general.</p>'}</div>`;
+  $('#nm').onclick=newModel;
+  document.querySelectorAll('[data-oa]').forEach(c=>c.onchange=async()=>{await sb.from('ocr_models').update({active:c.checked}).eq('id',c.dataset.oa);load()});
+  document.querySelectorAll('[data-ox]').forEach(b=>b.onclick=async()=>{const m=M.find(x=>x.id===b.dataset.ox);if(confirm('¿Eliminar el modelo «'+m.name+'»?')){await sb.from('ocr_models').delete().eq('id',m.id);if(m.image_path)sb.storage.from('modelos').remove([m.image_path]);load()}});
+}
+function newModel(){
+  modal(`<h1>Nuevo modelo de lectura</h1><label>Tipo de documento</label><select id="mk"><option value="dni">DNI (anverso)</option><option value="recibo">Recibo de pago</option></select><label>Nombre del modelo</label><input id="mn" placeholder="Ej.: DNI azul, Yape, BCP"><label>Imagen de ejemplo</label><input type="file" id="mf" accept="image/*"><div class="err" id="me"></div><button class="p" id="mgo" style="width:100%;margin-top:12px">Continuar</button><button id="cl" style="width:100%;margin-top:8px">Cancelar</button>`);
+  $('#cl').onclick=()=>closeM();
+  $('#mgo').onclick=async()=>{const f=$('#mf').files[0],name=$('#mn').value.trim();if(!name||!f){$('#me').textContent='Escribe un nombre y elige una imagen.';return}
+    const{blob,w,h}=await shrink(f,1600,.9);editModel({kind:$('#mk').value,name,blob,url:URL.createObjectURL(blob),w,h,fields:[]})};
+}
+function editModel(M){
+  modal(`<h1>${esc(M.name)}</h1><p class="sub">Elige el dato y arrastra sobre la imagen para marcar dónde está. Repite para cada dato.</p><select id="mfld">${OCRF[M.kind].map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select>
+  <div id="mbox" style="position:relative;margin:12px 0;touch-action:none;user-select:none;line-height:0"><img src="${M.url}" alt="" style="width:100%;border-radius:10px;pointer-events:none"><div id="mrs"></div></div><div id="mls"></div><div class="err" id="me"></div>
+  <button class="p" id="msv" style="width:100%;margin-top:8px">Guardar modelo</button><button id="cl" style="width:100%;margin-top:8px">Cancelar</button>`);
+  const box=$('#mbox'),lab=k=>OCRF[M.kind].find(f=>f[0]===k)[1];
+  const draw=tmp=>{$('#mrs').innerHTML=M.fields.concat(tmp?[tmp]:[]).map(f=>`<div style="position:absolute;left:${f.rect[0]*100}%;top:${f.rect[1]*100}%;width:${f.rect[2]*100}%;height:${f.rect[3]*100}%;border:2px solid #d63b3b;background:rgba(214,59,59,.18);border-radius:4px"><span style="position:absolute;top:-17px;left:0;font:700 11px/1 system-ui;background:#d63b3b;color:#fff;padding:3px 5px;border-radius:4px;white-space:nowrap">${lab(f.key)}</span></div>`).join('');
+    $('#mls').innerHTML=M.fields.map((f,i)=>`<div class="att"><span>${lab(f.key)}</span><button class="dg" data-r="${i}">Quitar</button></div>`).join('')||'<p class="sub">Aún no marcaste ningún dato.</p>';
+    document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{M.fields.splice(+b.dataset.r,1);draw()})};
+  let st=null;const pt=e=>{const r=box.getBoundingClientRect();return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]},rc=(a,b)=>[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1])];
+  box.onpointerdown=e=>{box.setPointerCapture(e.pointerId);st=pt(e)};
+  box.onpointermove=e=>{if(st)draw({key:$('#mfld').value,rect:rc(st,pt(e))})};
+  box.onpointerup=e=>{if(!st)return;const r=rc(st,pt(e));st=null;if(r[2]>.02&&r[3]>.01){const k=$('#mfld').value;M.fields=M.fields.filter(f=>f.key!==k);M.fields.push({key:k,rect:r})}draw()};
+  draw();$('#cl').onclick=()=>closeM();
+  $('#msv').onclick=async()=>{if(!M.fields.length){$('#me').textContent='Marca al menos un dato.';return}$('#msv').disabled=true;
+    try{const path=`${M.kind}-${Date.now()}.jpg`;let x=await sb.storage.from('modelos').upload(path,M.blob,{contentType:'image/jpeg'});if(x.error)throw x.error;
+      x=await sb.from('ocr_models').insert({kind:M.kind,name:M.name,image_path:path,fields:M.fields});if(x.error)throw x.error;closeM();await load()}catch(e){$('#me').textContent=e.message||e;$('#msv').disabled=false}};
+}
+/* --- historial: textos de acción --- */
+function actText(a){
+  const d=a.detail||{},sa=d.status&&d.status.a;
+  if(a.entity==='separations'){if(a.action==='INSERT')return'Registró la separación';if(a.action==='UPDATE'){if(sa==='confirmada')return'Confirmó la separación';if(sa==='vendida')return'Confirmó la venta (Vendido)';if(sa==='vencida')return'Separación vencida (automático)';if(sa==='anulada')return'Anuló la separación';if(d.price_status)return'Resolvió el cambio de precio'}}
+  if(a.entity==='installments'&&a.action==='UPDATE')return'Registró el pago de una cuota';
+  return`${ACT[a.action]} ${ENT[a.entity]||a.entity}`;
+}
+/* --- panel lateral --- */
+function renderSide(){
+  const r=S.me.role,adm=r==='admin',B=S.brand||{},I=(t,ic,l)=>`<button class="ni ${S.tab===t?'on':''}" data-t="${t}"><span class="ic">${ic}</span>${l}</button>`;
+  let h=`<div class="co">${B.logo?`<img src="${B.logo}" alt="">`:''}<div><b>${esc(B.name||'Mi empresa')}</b><div class="sub">${ROL[r]}</div></div></div>`;
+  if(r!=='externo'){h+='<div class="nt">Operación</div>'+I('panel','📊','Panel')+I('plano','🗺️','Plano')+I('regs','📋',r==='vendedor'?'Mis separaciones':'Registros')+I('cuotas','💳','Cuotas');
+    if(adm||canEditLots())h+='<div class="nt">Gestión</div>'+I('lotes','🏷️','Lotes');
+    if(adm)h+=I('users','👥','Usuarios')+I('share','🔗','Enlaces externos')+I('ocr','🔍','Lectura de documentos')+I('hist','🕘','Historial')+I('brand','🎨','Empresa')}
+  $('#side').innerHTML=h;
+  document.querySelectorAll('#side [data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;document.body.classList.remove('nav-open');render()});
+}
+applyTheme();
 
 boot();
 </script></body></html>

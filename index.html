@@ -103,7 +103,7 @@ const curP=()=>S.projects.find(p=>p.id===S.pid)||null;
 async function shrink(f,max=4000,q=.85){const im=await createImageBitmap(f),k=Math.min(1,max/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{w,h,blob:await new Promise(r=>c.toBlob(r,'image/jpeg',q))}}
 /* --- mapeo de filas --- */
 const pUrl=p=>sb.storage.from('planos').getPublicUrl(p).data.publicUrl;
-const mProj=r=>({id:r.id,name:r.name,share:!!r.share_active,sepDays:r.sep_days,plan:r.plan_path?{url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h}:null});
+const mProj=r=>({id:r.id,name:r.name,share:!!r.share_active,sepDays:r.sep_days,pendingHours:r.pending_hours,plan:r.plan_path?{url:pUrl(r.plan_path),w:r.plan_w,h:r.plan_h}:null});
 const mLot=r=>({id:r.id,projectId:r.project_id,name:r.name,number:r.number,area:r.area,deposit:r.deposit,priceCash:r.price_cash,priceFin:r.price_fin,status:r.status,poly:r.poly,planId:r.plan_id});
 const mSep=r=>({id:r.id,projectId:r.project_id,lotId:r.lot_id,lotName:r.lot_name,lotNumber:r.lot_number,amount:r.amount,clientName:r.client_name,clientDni:r.client_dni,finType:r.fin_type,cuotas:r.installments??'Sin Cuotas',receipt:r.receipt_path,sellerName:r.seller_name,status:r.status,createdAt:+new Date(r.created_at),confirmedName:r.confirmed_name,confirmedAt:r.confirmed_at?+new Date(r.confirmed_at):0,priceFinal:r.price_final,soldAt:r.sold_at?+new Date(r.sold_at):0,opNumber:r.op_number,opDate:r.op_date,priceListed:r.price_listed,priceRequested:r.price_requested,priceStatus:r.price_status,priceNote:r.price_note,contractUrl:r.contract_url,soldByName:r.sold_by_name,expiresAt:r.expires_at?+new Date(r.expires_at):0,dniFront:r.dni_front_path,dniBack:r.dni_back_path});
 const lastSep=id=>S.seps.filter(s=>s.lotId===id&&!['anulada','vencida'].includes(s.status)).sort((a,b)=>b.createdAt-a.createdAt)[0];
@@ -115,7 +115,7 @@ function live(){const ch=sb.channel('rt');['lots','separations','projects','plan
 async function enter(){
   const{data:{user}}=await sb.auth.getUser();const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
   if(!p||!p.active){await sb.auth.signOut();loginView('Usuario desactivado o sin perfil. Contacta al administrador.');return}
-  S.me={id:p.id,dni:p.dni,name:p.name,role:p.role,perms:p.perms||[],email:p.email};await sb.rpc('expire_separations');await sb.rpc('remind_installments');await load();live();if(S.recovery||p.must_change_pw)forcePw();
+  S.me={id:p.id,dni:p.dni,name:p.name,role:p.role,perms:p.perms||[],email:p.email};await sb.rpc('run_expirations');await sb.rpc('remind_installments');await load();live();if(S.recovery||p.must_change_pw)forcePw();startPoll();
 }
 /* --- estructura --- */
 /* --- ficha del lote --- */
@@ -301,7 +301,7 @@ const mPlan=r=>({id:r.id,projectId:r.project_id,name:r.name,path:r.plan_path,url
 const curPlans=()=>S.plans.filter(p=>p.projectId===S.pid);
 const curPlan=()=>curPlans().find(p=>p.id===S.planId)||curPlans()[0]||null;
 const lockMark=l=>{const k=S.locks[l.id];return k&&l.status==='libre'&&new Date(k.until)>new Date()?'🔒':''};
-addEventListener('pagehide',()=>{if(S.lk)sb.rpc('unlock_lot',{p_lot:S.lk})});
+
 async function load(){
   let pq=sb.from('projects').select('*').order('created_at'),lq=sb.from(S.ext?'lots_public':'lots').select('*'),plq=sb.from('plans').select('*').order('created_at');
   if(S.ext){pq=pq.eq('id',S.extPid);lq=lq.eq('project_id',S.extPid);plq=plq.eq('project_id',S.extPid)}
@@ -368,18 +368,6 @@ async function vPerms(){
   $('#v').innerHTML=`<div class="card"><h1>Permisos</h1><p class="sub">El administrador tiene todos los permisos. Aquí eliges cuáles tiene cada usuario administrativo.</p>`+(U.length?`<div class="tw"><table><tr><th>Usuario</th>${P.map(p=>`<th>${p[1]}</th>`).join('')}</tr>${U.map(u=>`<tr><td><b>${esc(u.name)}</b><div class="sub">DNI ${esc(u.dni)}${u.active?'':' · inactivo'}</div></td>${P.map(p=>`<td><input type="checkbox" data-u="${u.id}" data-k="${p[0]}" ${(u.perms||[]).includes(p[0])?'checked':''}></td>`).join('')}</tr>`).join('')}</table></div>`:'<p class="mu">Aún no hay usuarios administrativos.</p>')+`<div class="note">${P.map(p=>`<b>${p[1]}:</b> ${p[2]}`).join('<br>')}</div></div>`;
   document.querySelectorAll('[data-u]').forEach(c=>c.onchange=async()=>{const u=U.find(x=>x.id===c.dataset.u),s=new Set(u.perms||[]);c.checked?s.add(c.dataset.k):s.delete(c.dataset.k);u.perms=[...s];const{error}=await sb.from('profiles').update({perms:u.perms}).eq('id',u.id);if(error){alert(error.message);vPerms()}});
 }
-async function openAccess(id){
-  const[{data:u},{data:up}]=await Promise.all([sb.from('profiles').select('*').eq('id',id).single(),sb.from('user_plans').select('plan_id').eq('user_id',id)]),has=new Set((up||[]).map(x=>x.plan_id));
-  modal(`<h1>Acceso de ${esc(u.name)}</h1><label style="font-size:14px;color:var(--tx)"><input type="radio" name="am" value="all" ${u.access_all?'checked':''}> Todos los planos</label><label style="font-size:14px;color:var(--tx)"><input type="radio" name="am" value="sel" ${u.access_all?'':'checked'}> Seleccionar planos</label>
-  <div id="al" style="margin-top:8px;${u.access_all?'opacity:.4;pointer-events:none':''}">${S.projects.map(p=>`<div style="margin:8px 0"><b>${esc(p.name)}</b>${S.plans.filter(x=>x.projectId===p.id).map(x=>`<label style="margin:3px 0;font-size:14px;color:var(--tx)"><input type="checkbox" data-pl="${x.id}" ${has.has(x.id)?'checked':''}> ${esc(x.name)}</label>`).join('')||'<div class="sub">Sin planos</div>'}</div>`).join('')}</div>
-  <div class="err" id="ae"></div><button class="p" id="as1" style="width:100%;margin-top:12px">Guardar</button><button id="ac1" style="width:100%;margin-top:8px">Cancelar</button>`);
-  $('#ac1').onclick=()=>openUser(id);document.querySelectorAll('[name=am]').forEach(x=>x.onchange=()=>{const a=document.querySelector('[name=am]:checked').value==='all';$('#al').style.cssText=a?'margin-top:8px;opacity:.4;pointer-events:none':'margin-top:8px'});
-  $('#as1').onclick=async()=>{const all=document.querySelector('[name=am]:checked').value==='all',sel=[...document.querySelectorAll('[data-pl]:checked')].map(x=>x.dataset.pl);
-    let x=await sb.from('profiles').update({access_all:all}).eq('id',id);if(!x.error)x=await sb.from('user_plans').delete().eq('user_id',id);
-    if(!x.error&&!all&&sel.length)x=await sb.from('user_plans').insert(sel.map(p=>({user_id:id,plan_id:p})));
-    if(x.error){$('#ae').textContent=x.error.message;return}openUser(id)};
-}
-
 /* ===== v10: panel, historial, avisos, marca, ventanas seguras, contraseña visible ===== */
 let MO=0,VW=0;
 function showImg(u){$('#viewer').innerHTML=`<button class="x" id="vx">✕</button><img src="${u}" alt="">`;$('#viewer').style.display='flex';$('#vx').onclick=()=>closeV();if(!VW){history.pushState({v:1},'');VW=1}}
@@ -486,13 +474,13 @@ function render(){
   if(!allowed.includes(S.tab))S.tab='plano';
   renderSide();
   const cpj=curP(),showP=!ext&&['panel','plano','regs','cuotas','lotes'].includes(S.tab);
-  const pb=ext?`<div class="bar"><h1>${esc(cpj.name)}</h1></div>`:showP?`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="bpn">＋ Proyecto</button>'+(cpj?`<button id="bpy">⏱ ${cpj.sepDays?cpj.sepDays+' días':'Sin límite'}</button><button id="bpr">Renombrar</button><button id="bpd" class="dg">Eliminar</button>`:'')+'</div>':''}</div>`:'';
+  const pb=ext?`<div class="bar"><h1>${esc(cpj.name)}</h1></div>`:showP?`<div class="bar"><select id="ps">${S.projects.map(p=>`<option value="${p.id}" ${p.id===S.pid?'selected':''}>${esc(p.name)}</option>`).join('')||'<option>Sin proyectos</option>'}</select>${adm?'<div class="grp"><button id="bpn">＋ Proyecto</button>'+(cpj?`<button id="bpy">⏱ Plazos</button><button id="bpr">Renombrar</button><button id="bpd" class="dg">Eliminar</button>`:'')+'</div>':''}</div>`:'';
   $('#app').innerHTML=pb+'<div id="v"></div>';
   const reload=()=>{S.draft=null;S.view=null;S.planId=null;load()};
   if($('#ps'))$('#ps').onchange=e=>{S.pid=e.target.value;LS.set('pid',S.pid);S.draft=null;S.view=null;S.planId=null;load()};
   if($('#bpn'))$('#bpn').onclick=()=>formModal('Nuevo proyecto',[{id:'fnm',label:'Nombre del proyecto'}],async v=>{if(!v.fnm)return'Escribe un nombre';const{data,error}=await sb.from('projects').insert({name:v.fnm}).select().single();if(error)return error.message;S.pid=data.id;LS.set('pid',S.pid);S.tab='plano';reload()});
   if($('#bpr'))$('#bpr').onclick=()=>formModal('Renombrar proyecto',[{id:'fnm',label:'Nombre del proyecto',value:cpj.name}],async v=>{if(!v.fnm)return'Escribe un nombre';const{error}=await sb.from('projects').update({name:v.fnm}).eq('id',S.pid);if(error)return error.message;load()});
-  if($('#bpy'))$('#bpy').onclick=()=>formModal('Días en estado «Separado»',[{id:'fdy',label:'Días antes de liberar el lote (vacío = sin límite)',type:'number',value:cpj.sepDays||''}],async v=>{const n=v.fdy===''?null:parseInt(v.fdy);if(n!==null&&!(n>0))return'Número inválido';const{error}=await sb.from('projects').update({sep_days:n}).eq('id',S.pid);if(error)return error.message;load()});
+  if($('#bpy'))$('#bpy').onclick=()=>formModal('Plazos del proyecto',[{id:'fph',label:'Horas máximas en estado «En separación» (sin confirmar)',type:'number',value:cpj.pendingHours??'',hint:'Pasado este tiempo el lote se libera y se eliminan los datos registrados (queda constancia en el historial del lote). Vacío = sin límite.'},{id:'fdy',label:'Días máximos en estado «Separado»',type:'number',value:cpj.sepDays??'',hint:'Pasado este tiempo el lote se libera y la separación queda como «Vencida» (se conserva el registro). Vacío = sin límite.'}],async v=>{const h=v.fph===''?null:parseInt(v.fph),d=v.fdy===''?null:parseInt(v.fdy);if((h!==null&&!(h>0))||(d!==null&&!(d>0)))return'Usa números enteros mayores que 0.';const{error}=await sb.from('projects').update({pending_hours:h,sep_days:d}).eq('id',S.pid);if(error)return error.message;load()});
   if($('#bpd'))$('#bpd').onclick=async()=>{if(confirm(`¿Eliminar «${cpj.name}» con sus planos, lotes y registros? No se puede deshacer.`)){const{error}=await sb.from('projects').delete().eq('id',S.pid);if(error)alert(error.message);S.pid=null;reload()}};
   ({panel:vPanel,plano:vPlano,regs:vRegs,lotes:vLotes,users:vUsers,share:vShare,hist:vHist,brand:vBrand,cuotas:vCuotas,ocr:vOcr})[S.tab]();
 }
@@ -511,7 +499,6 @@ function applyTheme(){const t=LS.get('theme');if(t==='light'||t==='dark')documen
 function themeModal(){const t=LS.get('theme')||'auto';modal(`<h1>Tema</h1><div class="grp" style="margin:10px 0">${[['auto','🌓 Automático'],['light','☀️ Claro'],['dark','🌙 Oscuro']].map(([k,l])=>`<button class="${t===k?'on':''}" data-th="${k}" style="flex:1">${l}</button>`).join('')}</div><button style="width:100%" id="cl">Cerrar</button>`);document.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{LS.set('theme',b.dataset.th);applyTheme();themeModal()});$('#cl').onclick=()=>closeM()}
 /* --- ventanas --- */
 function modal(h){const nx=h.includes('id="cl"')||h.includes('data-nox');$('#modal').innerHTML=`<div class="ov"><div class="md ${nx?'':'hx'}">${nx?'':'<button class="x" id="mx" aria-label="Cerrar">✕</button>'}${h}</div></div>`;if($('#mx'))$('#mx').onclick=()=>closeM();if(!MO){history.pushState({m:1},'');MO=1}}
-function closeM(pop){$('#modal').innerHTML='';clearInterval(S.hb);clearInterval(S.tm);if(S.lk){sb.rpc('unlock_lot',{p_lot:S.lk});S.lk=null}if(MO){MO=0;if(pop!==true)history.back()}}
 function formModal(t,fs,cb,ok='Aceptar'){
   modal(`<h1>${t}</h1>${fs.map(f=>f.pw?pwField(f.id,f.label):`<label>${f.label}</label>${f.select?`<select id="${f.id}">${f.select.map(([v,x])=>`<option value="${v}" ${v===f.value?'selected':''}>${x}</option>`).join('')}</select>`:`<input id="${f.id}" type="${f.type||'text'}" value="${esc(f.value??'')}" ${f.type==='number'?'inputmode="numeric"':''}>`}`+(f.hint?`<div class="sub">${f.hint}</div>`:'')).join('')}<div class="err" id="fe"></div><button class="p" id="fok" style="width:100%;margin-top:14px">${ok}</button>`);
   const go=async()=>{const v={};fs.forEach(f=>v[f.id]=$('#'+f.id).value.trim());$('#fok').disabled=true;$('#fok').textContent='Guardando…';let e;try{e=await cb(v)}catch(x){e=x.message}
@@ -521,7 +508,7 @@ function formModal(t,fs,cb,ok='Aceptar'){
 /* --- sesión --- */
 function loginView(msg){
   $('#who').textContent='';$('#hr').innerHTML='';
-  $('#app').innerHTML=`<div class="card login"><img src="logo.png" alt=""><h1 style="margin:8px 0 2px">Separador de Lotes</h1><p class="sub">Inicia sesión para continuar</p><label>DNI (administrador: admin)</label><input id="ld" autocomplete="username">${pwField('lp','Contraseña')}<div class="err" id="le">${esc(msg||'')}</div><button class="p" style="width:100%;margin-top:12px" id="lb">Entrar</button><p style="margin:14px 0 0"><a href="#" id="lf">¿Olvidaste tu contraseña?</a></p></div>`;
+  $('#app').innerHTML=`<div class="card login"><img src="logo.png" alt=""><h1 style="margin:8px 0 2px">Separador de Lotes</h1><p class="sub">Inicia sesión para continuar</p><label>Usuario (DNI)</label><input id="ld" autocomplete="username">${pwField('lp','Contraseña')}<div class="err" id="le">${esc(msg||'')}</div><button class="p" style="width:100%;margin-top:12px" id="lb">Entrar</button><p style="margin:14px 0 0"><a href="#" id="lf">¿Olvidaste tu contraseña?</a></p></div>`;
   const go=async()=>{$('#lb').disabled=true;const{data,error}=await sb.functions.invoke('auth-gate',{body:{action:'login',dni:$('#ld').value,password:$('#lp').value}});
     if(error||!data||!data.access_token){$('#le').textContent='DNI o contraseña incorrectos.';$('#lb').disabled=false;return}
     const r=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});if(r.error){$('#le').textContent=r.error.message;$('#lb').disabled=false;return}await enter()};
@@ -542,74 +529,11 @@ const sepForm2=()=>`<i data-nox hidden></i><div class="note" style="margin-top:0
 <div class="kv"><div><b id="plb">Precio (al contado)</b><span id="plv"></span></div><div><b>Cambio de precio</b><label style="margin:0;font-weight:600;color:var(--tx)"><input type="checkbox" id="pc"> Solicitar cambio</label></div></div>
 <div class="row" id="prq" style="display:none"><div><label>Precio solicitado (S/.)</label><input id="sf_pr" type="number" inputmode="decimal" step="any"></div><div><label>Motivo (opcional)</label><input id="sf_pn"></div></div>
 <h3 class="sec">3 · Pago de la separación</h3>${fileField('rc','Foto del recibo de separación')}<div class="row"><div><label>N° de operación</label><input id="on"></div><div><label>Fecha de operación</label><input id="od" type="date"></div></div>
-<div class="err" id="me2"></div><div class="grp" style="margin-top:14px"><button class="dg" id="anl" style="flex:1">Anular</button><button class="p" id="reg" style="flex:2" disabled>Registrar</button></div>`;
+<div class="err" id="me2"></div><div class="grp" style="margin-top:14px"><button class="dg" id="anl" style="flex:1">Anular</button><button id="cer" style="flex:1">Cerrar</button><button class="p" id="reg" style="flex:2" disabled>Registrar</button></div><div class="sub" style="margin-top:8px">«Cerrar» guarda lo ingresado y mantiene el lote bloqueado hasta que termine el tiempo. «Anular» libera el lote y descarta todo.</div>`;
 async function readDoc(kind,blob){
   let d=null;try{d=await readByModels(kind,blob)}catch(e){}
   if(d&&(kind==='dni'?(d.first||d.last||d.dni):(d.op||d.date)))return d;
   const t=await ocr(blob);return kind==='dni'?parseDni(t):parseReceipt(t);
-}
-function bindForm(l){
-  const F={},q=i=>$('#'+i),price=()=>q('ft').value==='En cuotas'?l.priceFin:l.priceCash;
-  const chk=()=>{const c=q('ft').value==='En cuotas',cu=q('cu'),rq=q('pc').checked;cu.disabled=!c;
-    if(!c){cu.type='text';cu.value='Sin Cuotas'}else if(cu.type!=='number'){cu.type='number';cu.value='';cu.min=2;cu.step=1}
-    q('plb').textContent=c?'Precio (en cuotas)':'Precio (al contado)';q('plv').textContent=money(price());q('prq').style.display=rq?'':'none';
-    q('reg').disabled=!(q('cf1').value.trim()&&q('cl1').value.trim()&&/^\d{8,12}$/.test(q('cd').value.trim())&&F.df&&F.db&&F.rc&&q('on').value.trim()&&q('od').value&&(!c||(Number.isInteger(+cu.value)&&+cu.value>=2))&&(!rq||(pos(q('sf_pr').value)&&+q('sf_pr').value!==price())))};
-  document.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const id=inp.dataset.f,m=q('ocr_'+id);m.textContent='Procesando imagen…';
-    try{const{blob}=await shrink(f,1800,.9);F[id]=blob;const p=q('pv_'+id);p.src=URL.createObjectURL(blob);p.style.display='block';chk();
-      if(id==='df'||id==='rc'){m.textContent='Leyendo datos de la imagen…';
-        if(id==='df'){const d=await readDoc('dni',blob);if(d.first)q('cf1').value=d.first;if(d.last)q('cl1').value=d.last;if(d.dni)q('cd').value=d.dni;m.textContent=(d.first||d.last||d.dni)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el documento; completa los datos.'}
-        else{const d=await readDoc('recibo',blob);if(d.op)q('on').value=d.op;if(d.date)q('od').value=d.date;m.textContent=(d.op||d.date)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el recibo; completa los datos.'}
-      }else m.textContent='';chk()}catch(e){m.textContent='No se pudo leer la imagen automáticamente; completa los datos.';chk()}});
-  ['cf1','cl1','cd','ft','cu','sf_pr','sf_pn','on','od'].forEach(i=>q(i).oninput=chk);q('pc').onchange=chk;
-  q('anl').onclick=()=>closeM();
-  const tick=()=>{const rem=S.lkUntil-Date.now();if(rem<=0){closeM();toast('⏱ Tiempo agotado: el lote fue liberado y no se guardó nada.');load();return}const t=q('tmr');if(t){t.textContent=`${Math.floor(rem/60000)}:${String(Math.floor(rem%60000/1000)).padStart(2,'0')}`;t.style.color=rem<60000?'var(--r)':''}};
-  clearInterval(S.tm);S.tm=setInterval(tick,1000);tick();
-  q('reg').onclick=async()=>{const b=q('reg'),er=q('me2'),c=q('ft').value==='En cuotas',up=[];b.disabled=true;b.textContent='Guardando…';
-    try{const base=`${S.me.id}/${Date.now()}`,P={df:base+'-dni-anverso.jpg',db:base+'-dni-reverso.jpg',rc:base+'-recibo.jpg'};
-      for(const k of['df','db','rc']){const bk=k==='rc'?'recibos':'documentos',x=await sb.storage.from(bk).upload(P[k],F[k],{contentType:'image/jpeg'});if(x.error)throw x.error;up.push([bk,P[k]])}
-      const x=await sb.rpc('register_separation',{p_lot:l.id,p_first:q('cf1').value.trim(),p_last:q('cl1').value.trim(),p_dni:q('cd').value.trim(),p_fin_type:q('ft').value,p_installments:c?+q('cu').value:null,p_receipt:P.rc,p_dni_front:P.df,p_dni_back:P.db,p_op_number:q('on').value.trim(),p_op_date:q('od').value,p_price_requested:q('pc').checked?+q('sf_pr').value:null,p_price_note:q('sf_pn').value.trim()||null});
-      if(x.error){for(const[bk,pa]of up)await sb.storage.from(bk).remove([pa]);throw x.error}
-      S.lk=null;closeM();load();toast('✔ Separación registrada');
-    }catch(e){er.textContent=e.message||'Error al registrar.';b.disabled=false;b.textContent='Registrar'}};
-  chk();
-}
-async function openLot(id){
-  const l=S.lots.find(x=>x.id===id);if(!l)return;
-  if(S.quick&&!l.name&&canEditLots())return quickAssign(l);
-  if(!l.name)return openFree(l);
-  const r=S.me.role,st=ST[l.status],sp=lastSep(id),si=S.sepInfo[id],lk=S.locks[id];let act='',note='',form=false;
-  if(r==='vendedor'&&l.status==='libre'){
-    if(!complete(l))note='<div class="note" style="border-color:var(--r)">⚠️ <b>Datos incompletos:</b> este lote aún no está disponible para separación.</div>';
-    else{const{data,error}=await sb.rpc('lock_lot',{p_lot:id});if(error)note=`<div class="note" style="border-color:var(--y)">🔒 ${esc(error.message)}</div>`;
-      else{S.lk=id;S.lkUntil=new Date(data);form=true;act=sepForm2()}}
-  }else if(lk&&l.status==='libre'&&r!=='externo')note=`<div class="note" style="border-color:var(--y)">🔒 En proceso de separación por <b>${esc(lk.user_name)}</b></div>`;
-  if(si&&l.status!=='libre'&&r!=='externo'&&!(sp&&sp.contractUrl))note+=`<div class="sub" style="margin:8px 0">Separado por <b>${esc(si.seller_name)}</b> · ${dt(si.sep_at)}</div>`;
-  const pp=sp&&sp.priceStatus==='pendiente';
-  if(sp&&r!=='externo'&&l.status!=='libre'){
-    act+=cli(sp)+`<div class="kv"><div><b>Precio (${esc(sp.finType)})</b>${money(sp.priceFinal)}${sp.priceStatus==='aprobado'?' · aprobado':''}</div><div><b>N° de operación</b>${esc(sp.opNumber)}</div><div><b>Fecha de operación</b>${esc(sp.opDate)}</div></div>`;
-    if(sp.priceStatus!=='ninguno')act+=`<div class="note">💲 Precio solicitado: <b>${money(sp.priceRequested)}</b> (lista ${money(sp.priceListed)}) · <b>${esc(sp.priceStatus)}</b>${sp.priceNote?' · '+esc(sp.priceNote):''}</div>`;
-    if(l.status==='separado'&&sp.expiresAt)act+=`<div class="sub">Vence el ${dt(sp.expiresAt)}</div>`;
-    if(sp.contractUrl)act+=`<div class="sub">Vendedor: <b>${esc(sp.sellerName)}</b> · Venta confirmada por <b>${esc(sp.soldByName)}</b> · ${dt(sp.soldAt)} · <a href="${esc(sp.contractUrl)}" target="_blank" rel="noopener">Contrato</a></div>`;
-    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="showImg(this.src)">`).join('')}</div>`;
-    if(pp&&r!=='vendedor'&&!hasPerm('approve_price'))act+='<div class="note">⏳ Un usuario con permiso debe aprobar o rechazar primero el cambio de precio.</div>';
-    if(hasPerm('approve_price')&&pp)act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
-    if(r==='administrativo'&&l.status==='sep')act+=`<button class="ok" id="cf" ${pp?'disabled':''} style="width:100%;margin-top:12px">Confirmar separación</button>`+(pp?'<div class="sub">Se habilita cuando el precio sea aprobado o rechazado.</div>':'');
-    if(hasPerm('mark_sold')&&l.status==='separado')act+='<label>Enlace del contrato (obligatorio)</label><input id="ct" placeholder="https://…"><button class="p" id="sold" style="width:100%;margin-top:8px">Confirmar venta (Vendido)</button>';
-  }
-  if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
-  if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
-  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
-  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div></div>${note}${act}<div class="err" id="me"></div>${form?'':'<button style="width:100%;margin-top:10px" id="cl">Cerrar</button>'}`);
-  const rpc=async(fnm,args)=>{const{error}=await sb.rpc(fnm,args);if(error){$('#me').textContent=error.message;return false}closeM();load();return true};
-  if($('#cl'))$('#cl').onclick=()=>closeM();
-  if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
-  if($('#ua'))$('#ua').onclick=()=>rpc('unassign_lot',{p_lot:l.id});
-  if($('#lb1'))$('#lb1').onclick=()=>{if(confirm('¿Liberar este lote y anular su separación?'))rpc('release_lot',{p_lot:l.id})};
-  if($('#cf'))$('#cf').onclick=()=>rpc('confirm_separation',{p_sep:sp.id});
-  if($('#pa'))$('#pa').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:true});if($('#pj'))$('#pj').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:false});
-  if($('#sold'))$('#sold').onclick=()=>{const u=$('#ct').value.trim();if(!/^https?:\/\/.+/i.test(u)){$('#me').textContent='Pega el enlace (http/https) del archivo del contrato.';return}rpc('mark_sold',{p_lot:l.id,p_url:u})};
-  document.querySelectorAll('.dimg').forEach(async im=>{const{data}=await sb.storage.from(im.dataset.b).createSignedUrl(im.dataset.p,3600);if(data)im.src=data.signedUrl});
-  if(form)bindForm(l);
 }
 /* --- asociar en orden (modo activo) --- */
 async function quickAssign(l){
@@ -627,34 +551,6 @@ async function vUsers(){
   const{data}=await sb.from('profiles').select('*').order('created_at'),U=data||[];
   $('#v').innerHTML=`<div class="card"><div class="bar" style="margin:0 0 10px"><h1>Usuarios</h1><button class="p" id="nu" style="margin-left:auto">＋ Nuevo Usuario</button></div><div class="tw"><table><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Rol</th><th>Correo</th><th></th></tr>${U.map(u=>`<tr><td>${esc(u.dni)}</td><td><b>${esc(u.name)}</b></td><td>${esc(u.phone||'')}</td><td>${ROL[u.role]}</td><td>${esc(u.email||'—')}</td><td><button data-u="${u.id}">Ver detalles</button></td></tr>`).join('')}</table></div></div>`;
   $('#nu').onclick=newUser;document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>openUser(b.dataset.u));
-}
-function newUser(){
-  formModal('Nuevo usuario',[{id:'nd',label:'DNI *'},{id:'nn',label:'Nombre completo *'},{id:'np',label:'Celular'},{id:'ne',label:'Correo electrónico (para recuperar la contraseña)',type:'email'},{id:'nr',label:'Rol *',select:[['vendedor','Vendedor'],['administrativo','Administrativo']]},{id:'nk',label:'Contraseña inicial * (mínimo 6)',pw:1,hint:'Solo sirve para el primer ingreso: el sistema le pedirá cambiarla.'}],async v=>{
-    if(!v.nd||!v.nn||!v.nk)return'Completa DNI, nombre y contraseña.';
-    try{await fn({action:'create',dni:v.nd,name:v.nn,phone:v.np,email:v.ne,role:v.nr,password:v.nk})}catch(e){return e.message}
-    vUsers()},'Crear usuario');
-}
-async function openUser(id){
-  const[{data:u},{data:up}]=await Promise.all([sb.from('profiles').select('*').eq('id',id).single(),sb.from('user_plans').select('plan_id').eq('user_id',id)]);if(!u)return;
-  const adm=u.role==='admin',names=(up||[]).map(x=>(S.plans.find(p=>p.id===x.plan_id)||{}).name).filter(Boolean);
-  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(u.name)}</h1><span class="badge" style="background:${u.active?'var(--g)':'#9aa4b8'}">${u.active?'Activo':'Inactivo'}</span></div>
-  <div class="kv"><div><b>DNI</b>${esc(u.dni)}</div><div><b>Celular</b>${esc(u.phone||'—')}</div><div><b>Rol</b>${ROL[u.role]}</div><div><b>Correo</b>${esc(u.email||'—')}</div></div>
-  ${adm?'':`<div class="att"><div><b>Estado</b><div class="sub">Activa o desactiva el ingreso</div></div><label class="sw"><input type="checkbox" id="stt" ${u.active?'checked':''}><span></span></label></div>
-  <div class="att"><div><b>Acceso a planos</b><div class="sub">${u.access_all?'Todos los planos':esc(names.join(', ')||'Ninguno seleccionado')}</div></div><button id="uac">Editar acceso</button></div>`}
-  <div class="grp" style="margin:14px 0 6px"><button id="ued">✏️ Editar datos</button><button id="ukk">🔑 Cambiar clave</button>${adm?'':'<button id="upm">🛡️ Permisos</button><button id="udl" class="dg">🗑 Eliminar</button>'}</div><button style="width:100%;margin-top:6px" id="cl">Cerrar</button>`);
-  $('#cl').onclick=()=>{closeM();vUsers()};
-  if($('#stt'))$('#stt').onchange=async e=>{const{error}=await sb.from('profiles').update({active:e.target.checked}).eq('id',id);if(error)alert(error.message);openUser(id)};
-  if($('#uac'))$('#uac').onclick=()=>openAccess(id);
-  $('#ued').onclick=()=>formModal('Editar datos',[{id:'en',label:'Nombre completo',value:u.name},{id:'ep',label:'Celular',value:u.phone||''},{id:'ee',label:'Correo electrónico',type:'email',value:u.email||''}].concat(adm?[]:[{id:'er',label:'Rol',value:u.role,select:[['vendedor','Vendedor'],['administrativo','Administrativo']]}]),async v=>{if(!v.en)return'El nombre es obligatorio.';try{await fn({action:'update_user',id,name:v.en,phone:v.ep,email:v.ee,role:adm?undefined:v.er})}catch(e){return e.message}openUser(id)});
-  $('#ukk').onclick=()=>formModal('Cambiar clave de '+esc(u.name),[{id:'k1',label:'Nueva contraseña (mínimo 6)',pw:1,hint:adm?'':'El usuario deberá cambiarla al ingresar.'}],async v=>{if(v.k1.length<6)return'Mínimo 6 caracteres';try{await fn({action:'set_password',id,password:v.k1})}catch(e){return e.message}toast('Contraseña actualizada')});
-  if($('#upm'))$('#upm').onclick=()=>openPerms(u);
-  if($('#udl'))$('#udl').onclick=async()=>{if(confirm('¿Eliminar a '+u.name+'? No se puede deshacer.'))try{await fn({action:'delete',id});closeM();vUsers()}catch(e){alert(e.message)}};
-}
-function openPerms(u){
-  const P=PERMS[u.role]||[];
-  modal(`<h1>Permisos de ${esc(u.name)}</h1><p class="sub">${ROL[u.role]}</p>`+(P.length?P.map(p=>`<div class="att"><div><b>${p[1]}</b><div class="sub">${p[2]}</div></div><span class="sw"><input type="checkbox" data-k="${p[0]}" ${(u.perms||[]).includes(p[0])?'checked':''}><span></span></span></div>`).join(''):'<p class="mu">Este rol no tiene permisos configurables.</p>')+'<button style="width:100%;margin-top:12px" id="cl">Cerrar</button>');
-  $('#cl').onclick=()=>openUser(u.id);
-  document.querySelectorAll('[data-k]').forEach(c=>c.onchange=async()=>{const s=new Set(u.perms||[]);c.checked?s.add(c.dataset.k):s.delete(c.dataset.k);u.perms=[...s];const{error}=await sb.from('profiles').update({perms:u.perms}).eq('id',u.id);if(error){alert(error.message);openPerms(u)}});
 }
 /* --- cuotas y cronograma --- */
 function vCuotas(){
@@ -736,6 +632,164 @@ function renderSide(){
   document.querySelectorAll('#side [data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;document.body.classList.remove('nav-open');render()});
 }
 applyTheme();
+
+/* ===== v12: bloqueo con Cerrar/Anular, accesos por proyecto, historial del lote, admin delegado ===== */
+S.drafts=S.drafts||{};
+const fmtMS=ms=>`${Math.floor(ms/6e4)}:${String(Math.floor(ms%6e4/1e3)).padStart(2,'0')}`;
+const fmtLeft=ms=>{if(ms<=0)return'0 min';const m=Math.floor(ms/6e4),d=Math.floor(m/1440),h=Math.floor(m%1440/60);return d?`${d} d ${h} h`:h?`${h} h ${m%60} min`:`${m} min`};
+function startLockTick(until){
+  clearInterval(S.tv);
+  const t=()=>{const e=$('#ltm');if(!e){clearInterval(S.tv);return}const rem=new Date(until)-Date.now();
+    if(rem<=0){clearInterval(S.tv);e.textContent='00:00';e.parentElement.insertAdjacentHTML('beforeend',' · <b>ya disponible</b>');sb.rpc('run_expirations').then(()=>load());return}e.textContent=fmtMS(rem)};
+  t();S.tv=setInterval(t,1000);
+}
+function closeM(pop){
+  if(S.capture){try{S.capture()}catch(e){}S.capture=null}
+  $('#modal').innerHTML='';clearInterval(S.hb);clearInterval(S.tm);clearInterval(S.tv);S.lk=null;
+  if(MO){MO=0;if(pop!==true)history.back()}
+}
+async function anular(id){S.capture=null;delete S.drafts[id];clearInterval(S.tm);closeM();await sb.rpc('unlock_lot',{p_lot:id});load();toast('Proceso anulado: el lote quedó libre')}
+function bindForm(l){
+  const F={},q=i=>$('#'+i),IDS=['cf1','cl1','cd','ft','cu','sf_pr','sf_pn','on','od'],price=()=>q('ft').value==='En cuotas'?l.priceFin:l.priceCash;
+  const chk=()=>{const c=q('ft').value==='En cuotas',cu=q('cu'),rq=q('pc').checked;cu.disabled=!c;
+    if(!c){cu.type='text';cu.value='Sin Cuotas'}else if(cu.type!=='number'){cu.type='number';cu.value='';cu.min=2;cu.step=1}
+    q('plb').textContent=c?'Precio (en cuotas)':'Precio (al contado)';q('plv').textContent=money(price());q('prq').style.display=rq?'':'none';
+    q('reg').disabled=!(q('cf1').value.trim()&&q('cl1').value.trim()&&/^\d{8,12}$/.test(q('cd').value.trim())&&F.df&&F.db&&F.rc&&q('on').value.trim()&&q('od').value&&(!c||(Number.isInteger(+cu.value)&&+cu.value>=2))&&(!rq||(pos(q('sf_pr').value)&&+q('sf_pr').value!==price())))};
+  const D=S.drafts[l.id];
+  if(D&&+D.until===+S.lkUntil){q('ft').value=D.v.ft;q('pc').checked=D.pc;chk();IDS.forEach(i=>{if(i!=='ft'&&D.v[i]!==undefined)q(i).value=D.v[i]});
+    Object.assign(F,D.F);for(const id in D.F){const p=q('pv_'+id);p.src=URL.createObjectURL(D.F[id]);p.style.display='block'}toast('Se recuperó lo que habías ingresado')}
+  else delete S.drafts[l.id];
+  S.capture=()=>{S.drafts[l.id]={until:S.lkUntil,F:{...F},v:Object.fromEntries(IDS.map(i=>[i,q(i).value])),pc:q('pc').checked}};
+  document.querySelectorAll('[data-f]').forEach(inp=>inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const id=inp.dataset.f,m=q('ocr_'+id);m.textContent='Procesando imagen…';
+    try{const{blob}=await shrink(f,1800,.9);F[id]=blob;const p=q('pv_'+id);p.src=URL.createObjectURL(blob);p.style.display='block';chk();
+      if(id==='df'||id==='rc'){m.textContent='Leyendo datos de la imagen…';
+        if(id==='df'){const d=await readDoc('dni',blob);if(d.first)q('cf1').value=d.first;if(d.last)q('cl1').value=d.last;if(d.dni)q('cd').value=d.dni;m.textContent=(d.first||d.last||d.dni)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el documento; completa los datos.'}
+        else{const d=await readDoc('recibo',blob);if(d.op)q('on').value=d.op;if(d.date)q('od').value=d.date;m.textContent=(d.op||d.date)?'✔ Datos detectados. Verifícalos antes de continuar.':'No se pudo leer el recibo; completa los datos.'}
+      }else m.textContent='';chk()}catch(e){m.textContent='No se pudo leer la imagen automáticamente; completa los datos.';chk()}});
+  IDS.forEach(i=>q(i).oninput=chk);q('pc').onchange=chk;
+  q('anl').onclick=()=>anular(l.id);q('cer').onclick=()=>closeM();
+  const tick=()=>{const rem=S.lkUntil-Date.now();if(rem<=0){S.capture=null;delete S.drafts[l.id];clearInterval(S.tm);closeM();toast('⏱ Tiempo agotado: el lote fue liberado y no se guardó nada.');sb.rpc('run_expirations').then(()=>load());return}const t=q('tmr');if(t){t.textContent=fmtMS(rem);t.style.color=rem<60000?'var(--r)':''}};
+  clearInterval(S.tm);S.tm=setInterval(tick,1000);tick();
+  q('reg').onclick=async()=>{const b=q('reg'),er=q('me2'),c=q('ft').value==='En cuotas',up=[];b.disabled=true;b.textContent='Guardando…';
+    try{const base=`${S.me.id}/${Date.now()}`,P={df:base+'-dni-anverso.jpg',db:base+'-dni-reverso.jpg',rc:base+'-recibo.jpg'};
+      for(const k of['df','db','rc']){const bk=k==='rc'?'recibos':'documentos',x=await sb.storage.from(bk).upload(P[k],F[k],{contentType:'image/jpeg'});if(x.error)throw x.error;up.push([bk,P[k]])}
+      const x=await sb.rpc('register_separation',{p_lot:l.id,p_first:q('cf1').value.trim(),p_last:q('cl1').value.trim(),p_dni:q('cd').value.trim(),p_fin_type:q('ft').value,p_installments:c?+q('cu').value:null,p_receipt:P.rc,p_dni_front:P.df,p_dni_back:P.db,p_op_number:q('on').value.trim(),p_op_date:q('od').value,p_price_requested:q('pc').checked?+q('sf_pr').value:null,p_price_note:q('sf_pn').value.trim()||null});
+      if(x.error){for(const[bk,pa]of up)await sb.storage.from(bk).remove([pa]);throw x.error}
+      S.capture=null;delete S.drafts[l.id];closeM();load();toast('✔ Separación registrada');
+    }catch(e){er.textContent=e.message||'Error al registrar.';b.disabled=false;b.textContent='Registrar'}};
+  chk();
+}
+async function openLot(id){
+  const l=S.lots.find(x=>x.id===id);if(!l)return;
+  if(S.quick&&!l.name&&canEditLots())return quickAssign(l);
+  if(!l.name)return openFree(l);
+  const r=S.me.role,st=ST[l.status],sp=lastSep(id),si=S.sepInfo[id],lk=S.locks[id];let act='',note='',form=false,lockUntil=null;
+  if(r==='vendedor'&&l.status==='libre'){
+    if(!complete(l))note='<div class="note" style="border-color:var(--r)">⚠️ <b>Datos incompletos:</b> este lote aún no está disponible para separación.</div>';
+    else{const{data,error}=await sb.rpc('lock_lot',{p_lot:id});
+      if(error){note=`<div class="note" style="border-color:var(--y)">🔒 ${esc(error.message)}${lk?' · tiempo restante <b id="ltm">--:--</b>':''}</div>`;if(lk)lockUntil=lk.until}
+      else{S.lk=id;S.lkUntil=new Date(data);form=true;act=sepForm2()}}
+  }else if(lk&&l.status==='libre'&&r!=='externo'){note=`<div class="note" style="border-color:var(--y)">🔒 En proceso de separación por <b>${esc(lk.user_name)}</b> · tiempo restante <b id="ltm">--:--</b></div>`;lockUntil=lk.until}
+  if(si&&l.status!=='libre'&&r!=='externo'&&!(sp&&sp.contractUrl))note+=`<div class="sub" style="margin:8px 0">${l.status==='sep'?'En separación por':'Separado por'} <b>${esc(si.seller_name)}</b> · ${dt(si.sep_at)}</div>`;
+  if(si&&r!=='externo'){
+    if(l.status==='separado'&&si.expires_at)note+=`<div class="sub">⏳ Vence el ${dt(si.expires_at)} · quedan ${fmtLeft(new Date(si.expires_at)-Date.now())}</div>`;
+    if(l.status==='sep'&&si.pending_until)note+=`<div class="sub">⏳ Si no se confirma, se libera el ${dt(si.pending_until)} · quedan ${fmtLeft(new Date(si.pending_until)-Date.now())}</div>`}
+  const pp=sp&&sp.priceStatus==='pendiente';
+  if(sp&&r!=='externo'&&l.status!=='libre'){
+    act+=cli(sp)+`<div class="kv"><div><b>Precio (${esc(sp.finType)})</b>${money(sp.priceFinal)}${sp.priceStatus==='aprobado'?' · aprobado':''}</div><div><b>N° de operación</b>${esc(sp.opNumber)}</div><div><b>Fecha de operación</b>${esc(sp.opDate)}</div></div>`;
+    if(sp.priceStatus!=='ninguno')act+=`<div class="note">💲 Precio solicitado: <b>${money(sp.priceRequested)}</b> (lista ${money(sp.priceListed)}) · <b>${esc(sp.priceStatus)}</b>${sp.priceNote?' · '+esc(sp.priceNote):''}</div>`;
+    if(sp.contractUrl)act+=`<div class="sub">Vendedor: <b>${esc(sp.sellerName)}</b> · Venta confirmada por <b>${esc(sp.soldByName)}</b> · ${dt(sp.soldAt)} · <a href="${esc(sp.contractUrl)}" target="_blank" rel="noopener">Contrato</a></div>`;
+    act+=`<label>Documentos y recibo</label><div class="imgs">${[['documentos',sp.dniFront],['documentos',sp.dniBack],['recibos',sp.receipt]].map(([b,p])=>`<img class="dimg" data-b="${b}" data-p="${esc(p)}" onclick="showImg(this.src)">`).join('')}</div>`;
+    if(pp&&r!=='vendedor'&&!hasPerm('approve_price'))act+='<div class="note">⏳ Un usuario con permiso debe aprobar o rechazar primero el cambio de precio.</div>';
+    if(hasPerm('approve_price')&&pp)act+='<div class="grp" style="margin-top:8px"><button class="ok" id="pa" style="flex:1">Aprobar precio</button><button class="dg" id="pj" style="flex:1">Rechazar precio</button></div>';
+    if(r==='administrativo'&&l.status==='sep')act+=`<button class="ok" id="cf" ${pp?'disabled':''} style="width:100%;margin-top:12px">Confirmar separación</button>`+(pp?'<div class="sub">Se habilita cuando el precio sea aprobado o rechazado.</div>':'');
+    if(hasPerm('mark_sold')&&l.status==='separado')act+='<label>Enlace del contrato (obligatorio)</label><input id="ct" placeholder="https://…"><button class="p" id="sold" style="width:100%;margin-top:8px">Confirmar venta (Vendido)</button>';
+  }
+  if(canEditLots())act+='<div class="grp" style="margin-top:12px"><button id="ed1" style="flex:1">✏️ Editar datos</button>'+(l.poly&&l.status==='libre'?'<button id="ua" style="flex:1">Quitar del plano</button>':'')+'</div>';
+  if(r==='admin'||r==='administrativo')act+='<button id="lhs" style="width:100%;margin-top:8px">🕘 Historial del lote</button>';
+  if(r==='admin'&&l.status!=='libre')act+='<button id="lb1" class="dg" style="width:100%;margin-top:8px">Liberar lote</button>';
+  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(l.name)}</h1><span class="badge ${st[2]} ${st[1]}">${st[0]}</span></div>
+  <div class="kv"><div><b>Tamaño</b>${esc(l.area)} m²</div><div><b>Monto de separación</b>${money(l.deposit)}</div></div>${note}${act}<div class="err" id="me"></div>${form?'':'<button style="width:100%;margin-top:10px" id="cl">Cerrar</button>'}`);
+  const rpc=async(fnm,args)=>{const{error}=await sb.rpc(fnm,args);if(error){$('#me').textContent=error.message;return false}closeM();load();return true};
+  if($('#cl'))$('#cl').onclick=()=>closeM();
+  if($('#ed1'))$('#ed1').onclick=()=>editLot(l);
+  if($('#ua'))$('#ua').onclick=()=>rpc('unassign_lot',{p_lot:l.id});
+  if($('#lhs'))$('#lhs').onclick=()=>openLotHistory(l);
+  if($('#lb1'))$('#lb1').onclick=()=>{if(confirm('¿Liberar este lote y anular su separación?'))rpc('release_lot',{p_lot:l.id})};
+  if($('#cf'))$('#cf').onclick=()=>rpc('confirm_separation',{p_sep:sp.id});
+  if($('#pa'))$('#pa').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:true});if($('#pj'))$('#pj').onclick=()=>rpc('resolve_price',{p_sep:sp.id,p_ok:false});
+  if($('#sold'))$('#sold').onclick=()=>{const u=$('#ct').value.trim();if(!/^https?:\/\/.+/i.test(u)){$('#me').textContent='Pega el enlace (http/https) del archivo del contrato.';return}rpc('mark_sold',{p_lot:l.id,p_url:u})};
+  document.querySelectorAll('.dimg').forEach(async im=>{const{data}=await sb.storage.from(im.dataset.b).createSignedUrl(im.dataset.p,3600);if(data)im.src=data.signedUrl});
+  if(lockUntil)startLockTick(lockUntil);
+  if(form)bindForm(l);
+}
+async function openLotHistory(l){
+  const{data,error}=await sb.from('lot_history').select('*').eq('lot_id',l.id).order('at',{ascending:false}).limit(200);
+  modal(`<h1>Historial · ${esc(l.name)}</h1>`+(error?`<p class="err">${esc(error.message)}</p>`:(data&&data.length?data.map(h=>`<div class="att" style="align-items:flex-start"><div><b>${esc(h.event)}</b><div class="sub">${esc(h.actor_name||'')}${h.actor_role?' · '+esc(ROL[h.actor_role]||h.actor_role):''}${h.detail?' · '+esc(h.detail):''}</div></div><span class="sub" style="white-space:nowrap">${dt(h.at)}</span></div>`).join(''):'<p class="mu">Sin actividad registrada todavía.</p>'))+'<button style="width:100%;margin-top:12px" id="cl">Volver</button>');
+  $('#cl').onclick=()=>openLot(l.id);
+}
+/* --- limpieza de archivos de separaciones vencidas (administrador) y revisión periódica --- */
+async function processPurge(){
+  const{data}=await sb.from('purge_queue').select('*').limit(60);if(!data||!data.length)return;
+  const by={};data.forEach(r=>(by[r.bucket]=by[r.bucket]||[]).push(r.path));
+  for(const[b,ps]of Object.entries(by))await sb.storage.from(b).remove(ps);
+  await sb.from('purge_queue').delete().in('id',data.map(r=>r.id));
+}
+function startPoll(){
+  if(S.poll)return;let n=0;
+  S.poll=setInterval(async()=>{if(!S.me||S.ext||document.hidden)return;n++;
+    await sb.rpc('run_expirations');if(S.me.role==='admin')processPurge();
+    const{data}=await sb.from('lot_locks').select('*'),nl={};(data||[]).forEach(k=>{if(new Date(k.until)>new Date())nl[k.lot_id]=k});
+    const sig=o=>Object.keys(o).sort().join(',');
+    if(sig(nl)!==sig(S.locks||{})||n%3===0)load()},10000);
+}
+/* --- usuarios: admin delegado, permisos y accesos --- */
+function openPerms(u){
+  const P=PERMS[u.role]||[];
+  modal(`<h1>Permisos de ${esc(u.name)}</h1><p class="sub">${ROL[u.role]}</p>`+(P.length?P.map(p=>`<div class="att"><div><b>${p[1]}</b><div class="sub">${p[2]}</div></div><label class="sw"><input type="checkbox" data-k="${p[0]}" ${(u.perms||[]).includes(p[0])?'checked':''}><span></span></label></div>`).join(''):'<p class="mu">Este rol no tiene permisos configurables.</p>')+'<button style="width:100%;margin-top:12px" id="cl">Volver</button>');
+  $('#cl').onclick=()=>openUser(u.id);
+  document.querySelectorAll('[data-k]').forEach(c=>c.onchange=async()=>{const s=new Set(u.perms||[]);c.checked?s.add(c.dataset.k):s.delete(c.dataset.k);u.perms=[...s];const{error}=await sb.from('profiles').update({perms:u.perms}).eq('id',u.id);if(error){alert(error.message);openPerms(u)}else toast('Permiso actualizado')});
+}
+const ROLES_SEL=[['vendedor','Vendedor'],['administrativo','Administrativo'],['admin','Administrador']];
+function newUser(){
+  formModal('Nuevo usuario',[{id:'nd',label:'DNI *'},{id:'nn',label:'Nombre completo *'},{id:'np',label:'Celular'},{id:'ne',label:'Correo electrónico (para recuperar la contraseña)',type:'email'},{id:'nr',label:'Rol *',select:ROLES_SEL},{id:'nk',label:'Contraseña inicial * (mínimo 6)',pw:1,hint:'Solo sirve para el primer ingreso: el sistema le pedirá cambiarla.'}],async v=>{
+    if(!v.nd||!v.nn||!v.nk)return'Completa DNI, nombre y contraseña.';
+    try{await fn({action:'create',dni:v.nd,name:v.nn,phone:v.np,email:v.ne,role:v.nr,password:v.nk})}catch(e){return e.message}
+    vUsers()},'Crear usuario');
+}
+async function openUser(id){
+  const[{data:u},{data:up}]=await Promise.all([sb.from('profiles').select('*').eq('id',id).single(),sb.from('user_plans').select('plan_id').eq('user_id',id)]);if(!u)return;
+  const adm=u.role==='admin',root=u.dni==='admin',self=u.id===S.me.id,names=(up||[]).map(x=>(S.plans.find(p=>p.id===x.plan_id)||{}).name).filter(Boolean);
+  modal(`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h1>${esc(u.name)}</h1><span class="badge" style="background:${u.active?'var(--g)':'#9aa4b8'}">${u.active?'Activo':'Inactivo'}</span></div>
+  <div class="kv"><div><b>DNI</b>${esc(u.dni)}</div><div><b>Celular</b>${esc(u.phone||'—')}</div><div><b>Rol</b>${ROL[u.role]}</div><div><b>Correo</b>${esc(u.email||'—')}</div></div>
+  ${root||self?'':`<div class="att"><div><b>Estado</b><div class="sub">Activa o desactiva el ingreso</div></div><label class="sw"><input type="checkbox" id="stt" ${u.active?'checked':''}><span></span></label></div>`}
+  ${adm?'':`<div class="att"><div><b>Acceso a proyectos y planos</b><div class="sub">${u.access_all?'Todos los proyectos y planos':esc(names.join(', ')||'Ninguno seleccionado')}</div></div><button id="uac">Editar acceso</button></div>`}
+  <div class="grp" style="margin:14px 0 6px"><button id="ued">✏️ Editar datos</button><button id="ukk">🔑 Cambiar clave</button>${adm?'':'<button id="upm">🛡️ Permisos</button>'}${root||self?'':'<button id="udl" class="dg">🗑 Eliminar</button>'}</div><button style="width:100%;margin-top:6px" id="cl">Cerrar</button>`);
+  $('#cl').onclick=()=>{closeM();vUsers()};
+  if($('#stt'))$('#stt').onchange=async e=>{const{error}=await sb.from('profiles').update({active:e.target.checked}).eq('id',id);if(error)alert(error.message);openUser(id)};
+  if($('#uac'))$('#uac').onclick=()=>openAccess(id);
+  $('#ued').onclick=()=>formModal('Editar datos',[{id:'en',label:'Nombre completo',value:u.name},{id:'ep',label:'Celular',value:u.phone||''},{id:'ee',label:'Correo electrónico',type:'email',value:u.email||''}].concat(root||self?[]:[{id:'er',label:'Rol',value:u.role,select:ROLES_SEL}]),async v=>{if(!v.en)return'El nombre es obligatorio.';try{await fn({action:'update_user',id,name:v.en,phone:v.ep,email:v.ee,role:root||self?undefined:v.er})}catch(e){return e.message}openUser(id)});
+  $('#ukk').onclick=()=>formModal('Cambiar clave de '+esc(u.name),[{id:'k1',label:'Nueva contraseña (mínimo 6)',pw:1,hint:self?'':'El usuario deberá cambiarla al ingresar.'}],async v=>{if(v.k1.length<6)return'Mínimo 6 caracteres';try{await fn({action:'set_password',id,password:v.k1})}catch(e){return e.message}toast('Contraseña actualizada')});
+  if($('#upm'))$('#upm').onclick=()=>openPerms(u);
+  if($('#udl'))$('#udl').onclick=async()=>{if(confirm('¿Eliminar a '+u.name+'? No se puede deshacer.'))try{await fn({action:'delete',id});closeM();vUsers()}catch(e){alert(e.message)}};
+}
+async function openAccess(id){
+  const[{data:u},{data:up},{data:pj}]=await Promise.all([sb.from('profiles').select('*').eq('id',id).single(),sb.from('user_plans').select('plan_id').eq('user_id',id),sb.from('user_projects').select('project_id').eq('user_id',id)]);
+  const hasL=new Set((up||[]).map(x=>x.plan_id)),hasP=new Set((pj||[]).map(x=>x.project_id)),T='font-size:14px;color:var(--tx);margin:3px 0';
+  modal(`<h1>Acceso de ${esc(u.name)}</h1><label style="${T}"><input type="radio" name="am" value="all" ${u.access_all?'checked':''}> Todos los proyectos y planos</label><label style="${T}"><input type="radio" name="am" value="sel" ${u.access_all?'':'checked'}> Seleccionar proyectos y planos</label>
+  <div id="al" style="margin-top:10px;${u.access_all?'opacity:.4;pointer-events:none':''}">${S.projects.map(p=>`<div style="margin:10px 0;padding:10px;border:1px solid var(--bd);border-radius:12px"><label style="${T};font-weight:700"><input type="checkbox" data-pj="${p.id}" ${hasP.has(p.id)?'checked':''}> ${esc(p.name)}</label><div style="margin-left:22px">${S.plans.filter(x=>x.projectId===p.id).map(x=>`<label style="${T};font-weight:500"><input type="checkbox" data-pl="${x.id}" data-of="${p.id}" ${hasP.has(p.id)&&hasL.has(x.id)?'checked':''}> ${esc(x.name)}</label>`).join('')||'<div class="sub">Sin planos</div>'}</div></div>`).join('')||'<p class="mu">Aún no hay proyectos.</p>'}</div>
+  <p class="sub">Para ver un plano, el usuario necesita acceso al proyecto y al plano. Un proyecto sin planos marcados no se le mostrará.</p><div class="err" id="ae"></div><button class="p" id="as1" style="width:100%;margin-top:12px">Guardar</button><button id="ac1" style="width:100%;margin-top:8px">Cancelar</button>`);
+  $('#ac1').onclick=()=>openUser(id);
+  document.querySelectorAll('[name=am]').forEach(x=>x.onchange=()=>{const a=document.querySelector('[name=am]:checked').value==='all';$('#al').style.cssText=a?'margin-top:10px;opacity:.4;pointer-events:none':'margin-top:10px'});
+  document.querySelectorAll('[data-pj]').forEach(c=>c.onchange=()=>document.querySelectorAll(`[data-of="${c.dataset.pj}"]`).forEach(x=>x.checked=c.checked));
+  document.querySelectorAll('[data-pl]').forEach(c=>c.onchange=()=>{if(c.checked)document.querySelector(`[data-pj="${c.dataset.of}"]`).checked=true});
+  $('#as1').onclick=async()=>{const all=document.querySelector('[name=am]:checked').value==='all';
+    const pls=[...document.querySelectorAll('[data-pl]:checked')].map(x=>({p:x.dataset.of,l:x.dataset.pl})),prs=[...new Set(pls.map(x=>x.p))];
+    let x=await sb.from('profiles').update({access_all:all}).eq('id',id);
+    if(!x.error)x=await sb.from('user_plans').delete().eq('user_id',id);if(!x.error)x=await sb.from('user_projects').delete().eq('user_id',id);
+    if(!x.error&&!all&&pls.length){x=await sb.from('user_projects').insert(prs.map(p=>({user_id:id,project_id:p})));if(!x.error)x=await sb.from('user_plans').insert(pls.map(y=>({user_id:id,plan_id:y.l})))}
+    if(x.error){$('#ae').textContent=x.error.message;return}openUser(id)};
+}
 
 boot();
 </script></body></html>
